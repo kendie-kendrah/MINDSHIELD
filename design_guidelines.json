@@ -1,0 +1,110 @@
+{
+  "app_name": "MindShield",
+  "theme": "dark",
+  "typography": {
+    "headers": "Manrope",
+    "body": "Figtree",
+    "weights": {
+      "light": "font-light",
+      "regular": "font-normal",
+      "medium": "font-medium",
+      "bold": "font-bold"
+    },
+    "rules": [
+      "CRITICAL: Do NOT use Inter, Roboto, or Open Sans.",
+      "Headings (>32px) MUST use tracking-tight or tracking-tighter.",
+      "Body text MUST use leading-relaxed for comfortable reading.",
+      "Overlines/Labels MUST be Uppercase, Tiny (text-xs), and Wide Spacing (tracking-[0.2em])."
+    ]
+  },
+  "colors": {
+    "palette_name": "Deep Forest Glow (Organic & Earthy Dark)",
+    "background": "#0C1411",
+    "surface": "#14221D",
+    "surface_hover": "#1C2F28",
+    "surface_glass": "rgba(255, 255, 255, 0.03)",
+    "border": "#2A4036",
+    "primary": "#6B8E7B",
+    "primary_hover": "#83A894",
+    "primary_foreground": "#0C1411",
+    "text_primary": "#F0F4F2",
+    "text_secondary": "#A3B8AF",
+    "semantic": {
+      "normal": "#4ADE80",
+      "mild_distress": "#FCD34D",
+      "crisis": "#E17055",
+      "crisis_background": "rgba(225, 112, 85, 0.1)"
+    }
+  },
+  "visual_enhancers": {
+    "glassmorphism": "Use 'Crystal Glass' for sticky headers and badges: bg-white/5 backdrop-blur-xl border border-white/10 shadow-sm.",
+    "borders": "1px subtle inner strokes (border-border) to define containers. Avoid heavy box-shadows in dark mode.",
+    "radius": "Large nested radii. rounded-3xl for main page containers, rounded-2xl for inner cards, full for pill buttons.",
+    "textures": "Use CSS noise overlay or grain to kill digital flatness and make it feel like a physical, safe space."
+  },
+  "components": {
+    "SafeBadge": "A pill-shaped glassmorphism badge showing 'Protected' with a Lucide shield icon, permanently visible to reassure anonymity.",
+    "CrisisAlertBanner": "A fixed top banner (semantic crisis background) with Nigerian helplines. Must be dismissible but highly visible. Rounded corners, not sharp edge-to-edge.",
+    "MoodTrackerWidget": "Bento-style card using Shadcn Charts (Recharts) with soft curved lines (monotone or primary color). No sharp grid lines behind the chart.",
+    "E2EChatBubble": "Soft, rounded-2xl bubbles. User (surface_hover), AI (surface_glass). Always display current detected emotional state subtly at the top."
+  },
+  "grids": {
+    "dashboard": "Bento Grid Mode B (High Density). grid-cols-1 md:grid-cols-3 lg:grid-cols-4. gap-6 or gap-8.",
+    "spacing": "Generous Spacing Philosophy. Use p-8 or p-12 inside cards. Do not cramp text."
+  },
+  "layouts": {
+    "app_structure": "Sidebar navigation (glassmorphism) with a main content area that has a max-w-7xl constraint and margin auto to prevent infinite stretching.",
+    "chat_structure": "Centered constrained column (max-w-3xl) to feel intimate and focused, like a private journal."
+  },
+  "motion": {
+    "transitions": "All interactive elements need transition-all duration-300 ease-out.",
+    "hover_states": "Cards lift slightly (-translate-y-1) and borders brighten. Buttons subtly scale (scale-105).",
+    "entrance": "Staggered fade-up for list items (Framer Motion: initial={{opacity: 0, y: 10}} animate={{opacity: 1, y: 0}})."
+  },
+  "accessibility": {
+    "contrast": "Ensure text contrast meets APCA/WCAG standards. Use text-text_primary for main text, never pure white (#FFFFFF) against pure black.",
+    "focus": "All actionable elements must have focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background.",
+    "motion": "Respect prefers-reduced-motion media query."
+  },
+  "media": {
+    "icons": "lucide-react ONLY. NO EMOJIS.",
+    "3d_libraries": "None. Keep the interface minimal, flat, and extremely performant to avoid overwhelming users in distress."
+  },
+  "image_urls": [
+    {
+      "url": "https://images.unsplash.com/photo-1772445693223-e37f27076b9b?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1OTV8MHwxfHNlYXJjaHwxfHxjYWxtJTIwZGFyayUyMGFic3RyYWN0JTIwdGV4dHVyZXxlbnwwfHx8fDE3NzQzODAwMzV8MA&ixlib=rb-4.1.0&q=85",
+      "category": "background",
+      "description": "Rippling dark water surface - Use as subtle low-opacity background for onboarding/login screen to create a calm atmosphere."
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1759766409848-acb41d52358b?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1OTV8MHwxfHNlYXJjaHwyfHxjYWxtJTIwZGFyayUyMGFic3RyYWN0JTIwdGV4dHVyZXxlbnwwfHx8fDE3NzQzODAwMzV8MA&ixlib=rb-4.1.0&q=85",
+      "category": "texture",
+      "description": "Dark gray textured surface - Use as an overlay or background for the resources library."
+    },
+    {
+      "url": "https://images.pexels.com/photos/3360204/pexels-photo-3360204.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "category": "resource_thumbnail",
+      "description": "Man relaxing - Use as a thumbnail for mental health resources or community forum headers."
+    }
+  ],
+  "instructions_to_main_agent": [
+    "Implement a dark theme by default, using the provided 'Deep Forest Glow' color palette.",
+    "Ensure Shadcn components are heavily customized. Remove their default clinical Vercel-look borders and apply rounded-2xl or rounded-3xl with our custom colors.",
+    "For the 'Protected' anonymous badge, use a Glassmorphism pill with a shield icon from lucide-react.",
+    "The E2EE chat should NOT feel like a clinical medical tool. It should feel like a safe, intimate journal.",
+    "Ensure the Nigerian helplines banner uses the 'crisis' semantic color (muted terracotta, #E17055) but remains visually grounded, not alarming.",
+    "Use standard HTML + Tailwind for major layouts, and Shadcn for complex interactions (Dropdowns, Dialogs).",
+    "Always add data-testid attributes to all interactive elements."
+  ],
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": [
+    "You tend to converge toward generic outputs. Avoid this. Make the frontend distinctive and deeply calming.",
+    "Dark colors look good independently. DO NOT use dark colors as gradients.",
+    "Create depth through layered design elements with z-index hierarchy.",
+    "Use glass-morphism effects (bg-white/5 backdrop-blur-xl).",
+    "Do NOT center align the app container. No .App { text-align: center; }",
+    "Always use modern pill-shaped or rounded-2xl buttons.",
+    "NEVER use emojis for icons. Use lucide-react.",
+    "Use 2-3x more spacing than typical (p-8, p-12).",
+    "Use sonner for toasts at /app/frontend/src/components/ui/sonner.js."
+  ]
+}
