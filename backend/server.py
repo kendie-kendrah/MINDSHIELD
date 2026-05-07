@@ -356,6 +356,62 @@ async def analyze_with_ai(user_id: str, message_text: str):
             "escalate": False
         }
 
+# --- Admin Notification Helper ---
+async def create_admin_notification(ntype, title, message, user_id=None, user_pseudonym=None, metadata=None):
+    doc = {
+        'id': str(uuid.uuid4()),
+        'type': ntype,
+        'title': title,
+        'message': message,
+        'user_id': user_id,
+        'user_pseudonym': user_pseudonym or 'Unknown',
+        'read': False,
+        'metadata': metadata or {},
+        'created_at': datetime.now(timezone.utc).isoformat()
+    }
+    await db.admin_notifications.insert_one(doc)
+    return doc
+
+# --- AI Content Moderation ---
+async def moderate_forum_content(post_id, text, author_pseudonym):
+    try:
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        chat = LlmChat(
+            api_key=os.environ.get('EMERGENT_LLM_KEY'),
+            session_id=f"moderation-{str(uuid.uuid4())[:8]}",
+            system_message="""You are a content moderator for MindShield, a mental health support platform.
+Analyze the forum post and determine if it contains:
+1. Self-harm or suicide ideation
+2. Harmful or dangerous advice
+3. Harassment or bullying
+4. Severe misinformation about mental health
+5. Explicit or inappropriate content
+
+Be lenient with genuine expressions of distress - those are normal on a mental health platform.
+Only flag content that could genuinely harm others.
+
+Return JSON only: {"flagged": true/false, "reason": "brief explanation if flagged, empty string if not"}"""
+        ).with_model("anthropic", "claude-4-sonnet-20250514")
+        response = await chat.send_message(UserMessage(text=text))
+        json_match = re.search(r'\{[^{}]*\}', response, re.DOTALL)
+        if json_match:
+            result = json.loads(json_match.group())
+            if result.get('flagged'):
+                await db.forum_posts.update_one(
+                    {'id': post_id},
+                    {'$set': {'is_flagged': True, 'flag_reason': result.get('reason', 'Auto-detected concerning content')}}
+                )
+                await create_admin_notification(
+                    'FLAGGED_POST',
+                    'Forum Post Auto-Flagged',
+                    f'Post by {author_pseudonym} was flagged: {result.get("reason", "Concerning content")}',
+                    metadata={'post_id': post_id, 'reason': result.get('reason')}
+                )
+                return True
+    except Exception as e:
+        logger.error(f"Content moderation error: {e}")
+    return False
+
 @api_router.post("/messages")
 async def send_message(body: SendMessageRequest, user=Depends(get_current_user)):
     session_id = body.session_id or user['id']
