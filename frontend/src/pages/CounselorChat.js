@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Send, ArrowLeft, User, Stethoscope, Shield, Loader2 } from "lucide-react";
+import { Send, ArrowLeft, User, Stethoscope, Shield, Loader2, Wifi, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -8,6 +8,7 @@ import useStore from "@/store/useStore";
 import axios from "axios";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const WS_BASE = process.env.REACT_APP_BACKEND_URL.replace(/^http/, "ws");
 
 const STATE_CONFIG = {
   NORMAL: { color: "#4ADE80", bg: "bg-[#4ADE80]/10", label: "Normal" },
@@ -23,20 +24,67 @@ export default function CounselorChat() {
   const [conversation, setConversation] = useState(null);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [wsConnected, setWsConnected] = useState(false);
   const endRef = useRef(null);
   const inputRef = useRef(null);
-  const pollRef = useRef(null);
+  const wsRef = useRef(null);
+  const reconnectTimerRef = useRef(null);
 
   const isCounselor = user?.role === "counselor";
   const authHeaders = { Authorization: `Bearer ${user?.token}` };
   const baseRoute = isCounselor ? `${API}/counselor/conversations` : `${API}/conversations`;
 
+  // Initial fetch + WebSocket subscription for real-time messages
   useEffect(() => {
+    if (!conversationId || !user?.token) return;
+    let cancelled = false;
+
     fetchMessages();
-    // Poll every 3 seconds for near real-time
-    pollRef.current = setInterval(fetchMessages, 3000);
-    return () => clearInterval(pollRef.current);
-  }, [conversationId]);
+
+    const connect = () => {
+      if (cancelled) return;
+      try {
+        const ws = new WebSocket(`${WS_BASE}/api/ws/conversations/${conversationId}?token=${encodeURIComponent(user.token)}`);
+        wsRef.current = ws;
+
+        ws.onopen = () => setWsConnected(true);
+
+        ws.onmessage = (evt) => {
+          try {
+            const data = JSON.parse(evt.data);
+            if (data.event === "message.new" && data.message) {
+              setMessages((prev) => {
+                // Skip if we already have this id (we appended optimistically after our own POST)
+                if (prev.some((m) => m.id === data.message.id)) return prev;
+                return [...prev, data.message];
+              });
+            }
+          } catch (e) { /* ignore */ }
+        };
+
+        ws.onclose = () => {
+          setWsConnected(false);
+          wsRef.current = null;
+          if (!cancelled) reconnectTimerRef.current = setTimeout(connect, 3000);
+        };
+
+        ws.onerror = () => { try { ws.close(); } catch (e) { /* ignore */ } };
+      } catch (e) {
+        reconnectTimerRef.current = setTimeout(connect, 5000);
+      }
+    };
+
+    connect();
+
+    return () => {
+      cancelled = true;
+      if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
+      if (wsRef.current) {
+        try { wsRef.current.close(); } catch (e) { /* ignore */ }
+        wsRef.current = null;
+      }
+    };
+  }, [conversationId, user?.token]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -62,7 +110,8 @@ export default function CounselorChat() {
         { body: text },
         { headers: authHeaders }
       );
-      setMessages((prev) => [...prev, res.data]);
+      // Append immediately for snappy UX. If WS broadcast arrives later with same id, dedupe handles it.
+      setMessages((prev) => prev.some((m) => m.id === res.data.id) ? prev : [...prev, res.data]);
     } catch (e) {
       setInput(text);
     } finally {
@@ -100,8 +149,17 @@ export default function CounselorChat() {
             {isCounselor ? "Patient" : "Counselor"} - Encrypted Session
           </p>
         </div>
-        <div className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-full glass text-xs text-[#A3B8AF]">
-          <Shield className="w-3 h-3" /> Secure
+        <div className="ml-auto flex items-center gap-2">
+          <div
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${wsConnected ? "bg-[#4ADE80]/15 text-[#4ADE80]" : "bg-[#A3B8AF]/15 text-[#A3B8AF]"}`}
+            data-testid="conversation-ws-status"
+          >
+            {wsConnected ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
+            <span className="uppercase tracking-wider text-[10px]">{wsConnected ? "Live" : "Offline"}</span>
+          </div>
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full glass text-xs text-[#A3B8AF]">
+            <Shield className="w-3 h-3" /> Secure
+          </div>
         </div>
       </div>
 

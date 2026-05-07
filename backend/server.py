@@ -390,6 +390,37 @@ class AdminWSManager:
 
 admin_ws_manager = AdminWSManager()
 
+class ConversationWSManager:
+    """Per-conversation manager: { conversation_id: [WebSocket, ...] }"""
+    def __init__(self):
+        self.rooms = {}
+
+    async def connect(self, conversation_id: str, websocket: WebSocket):
+        await websocket.accept()
+        self.rooms.setdefault(conversation_id, []).append(websocket)
+
+    def disconnect(self, conversation_id: str, websocket: WebSocket):
+        room = self.rooms.get(conversation_id)
+        if not room:
+            return
+        if websocket in room:
+            room.remove(websocket)
+        if not room:
+            self.rooms.pop(conversation_id, None)
+
+    async def broadcast(self, conversation_id: str, payload: dict):
+        room = self.rooms.get(conversation_id, [])
+        dead = []
+        for ws in room:
+            try:
+                await ws.send_json(payload)
+            except Exception:
+                dead.append(ws)
+        for ws in dead:
+            self.disconnect(conversation_id, ws)
+
+conversation_ws_manager = ConversationWSManager()
+
 async def create_admin_notification(ntype, title, message, user_id=None, user_pseudonym=None, metadata=None):
     doc = {
         'id': str(uuid.uuid4()),
@@ -740,6 +771,11 @@ async def send_counselor_message(conversation_id: str, body: ConversationMessage
         {'$set': {'last_message_at': msg_doc['created_at']}}
     )
     del msg_doc['_id']
+    # Push to both sides via WebSocket
+    try:
+        await conversation_ws_manager.broadcast(conversation_id, {'event': 'message.new', 'message': msg_doc})
+    except Exception as e:
+        logger.error(f"Conversation WS broadcast failed: {e}")
     return msg_doc
 
 # ========== PATIENT CONVERSATION ROUTES ==========
@@ -813,6 +849,11 @@ async def send_patient_message(conversation_id: str, body: ConversationMessageRe
             metadata={'conversation_id': conversation_id, 'message_id': msg_doc['id'], 'preview': body.body[:160]}
         )
     del msg_doc['_id']
+    # Push to both sides via WebSocket
+    try:
+        await conversation_ws_manager.broadcast(conversation_id, {'event': 'message.new', 'message': msg_doc})
+    except Exception as e:
+        logger.error(f"Conversation WS broadcast failed: {e}")
     return msg_doc
 
 import string as string_module
@@ -1043,6 +1084,39 @@ async def admin_notifications_ws(websocket: WebSocket, token: Optional[str] = Qu
     except Exception as e:
         logger.error(f"WS error: {e}")
         admin_ws_manager.disconnect(websocket)
+
+@app.websocket("/api/ws/conversations/{conversation_id}")
+async def conversation_ws(websocket: WebSocket, conversation_id: str, token: Optional[str] = Query(default=None)):
+    # Auth: accept either a patient (role=user) who owns the conversation OR the assigned counselor
+    token_data = verify_token(token) if token else None
+    if not token_data:
+        await websocket.close(code=4401)
+        return
+    user_id = token_data['user_id']
+    role = token_data.get('role', 'user')
+    conv = await db.conversations.find_one({'id': conversation_id}, {'_id': 0})
+    if not conv:
+        await websocket.close(code=4404)
+        return
+    if role == 'counselor' and conv.get('counselor_id') != user_id:
+        await websocket.close(code=4403)
+        return
+    if role == 'user' and conv.get('patient_id') != user_id:
+        await websocket.close(code=4403)
+        return
+
+    await conversation_ws_manager.connect(conversation_id, websocket)
+    try:
+        await websocket.send_json({'event': 'connected', 'conversation_id': conversation_id})
+        while True:
+            msg = await websocket.receive_text()
+            if msg == 'ping':
+                await websocket.send_text('pong')
+    except WebSocketDisconnect:
+        conversation_ws_manager.disconnect(conversation_id, websocket)
+    except Exception as e:
+        logger.error(f"Conversation WS error: {e}")
+        conversation_ws_manager.disconnect(conversation_id, websocket)
 
 @api_router.post("/admin/connect-to-counselor")
 async def admin_connect_user_to_counselor(body: ConnectToCounselorRequest, admin=Depends(get_current_admin)):

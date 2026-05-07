@@ -1,0 +1,55 @@
+{
+  "summary": "Tested the new conversation WebSocket realtime feature end-to-end. Backend pytest suite (9/9 PASS) covers WS auth (missing/invalid token, unknown conversation, non-participant), counselor-to-patient broadcast, patient-to-counselor broadcast, multi-client fan-out (2 patient sockets + 1 counselor socket all receive), disconnect cleanup (broadcast still works after a peer closes), and CRISIS patient message that creates an admin notification AND broadcasts via the conversation WS. Frontend Playwright flow: patient onboarded via UI, SPA-navigated to /appointments/chat/:id, [data-testid=conversation-ws-status] reaches LIVE within 500ms; a REST POST by the counselor renders the new message via WS push without a refetch; optimistic dedupe verified (UI send results in exactly +1 rendered msg, no duplicate from echo); polling fully removed (0 GET /messages calls in a 7s idle window).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "WS /api/ws/conversations/{id}", "issue": "K8s ingress translates custom WS close codes (4401/4403/4404) into an HTTP 403 handshake rejection; clients only see 'connection rejected' rather than the specific code. Tests accept either path. Backend logic is correct; this is an ingress limitation also seen in admin notifications WS."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "passed_tests": [
+    "Backend WS rejects missing token (handshake reject or close 4401)",
+    "Backend WS rejects invalid token",
+    "Backend WS rejects unknown conversation_id",
+    "Backend WS rejects authenticated non-participant",
+    "Backend: counselor REST POST broadcasts message.new with sender_role=counselor and emotional_state field",
+    "Backend: patient REST POST broadcasts message.new (sender_role=patient/user) to counselor socket",
+    "Backend: 3 simultaneous sockets in same room (2 patient + 1 counselor) all receive same message.new",
+    "Backend: closing a socket cleans the room; subsequent broadcast still delivered to surviving sockets",
+    "Backend: CRISIS patient message creates admin_notifications doc (type=CRISIS, metadata.conversation_id) AND broadcasts via conversation WS",
+    "Frontend: CounselorChat page opens WS to /api/ws/conversations/:id and renders [data-testid=conversation-ws-status] = 'LIVE' within 500ms",
+    "Frontend: counselor REST POST -> WS push appended message in chat with [data-testid=msg-:id] (no refresh, no refetch)",
+    "Frontend: optimistic dedupe — sending via UI input results in exactly +1 rendered msg (no dup when WS echoes back)",
+    "Frontend: no setInterval polling — 0 GET /messages calls in a 7s idle window (XHR + fetch instrumented)"
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_conversation_ws.py",
+    "/app/test_reports/pytest/conversation_ws_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "ConversationWSManager uses a plain dict + list (not a lock). Concurrent connect/disconnect during broadcast could race. Low probability under uvicorn single-loop, but if scaling to multiple workers, broadcasts must be cross-process (e.g., Redis pub/sub).",
+    "WS auth pulls token only from query string; consider also accepting Sec-WebSocket-Protocol header for stricter clients/proxies (matches admin_ws pattern).",
+    "Backend swallows broadcast errors per-socket with a generic 'except Exception' — logs go to logger.error in caller; OK for MVP.",
+    "Frontend dedupe relies on identical msg.id between optimistic POST response and WS echo. If server ever sends a different id (e.g., after sanitization), duplicates would render. Server currently returns the same doc.id, so safe.",
+    "CounselorChat reconnects after onclose with a 3s timer — no exponential backoff or max attempts; can cause hot-reconnect loops on persistent server failure. Consider 1s,3s,5s,10s with cap.",
+    "Pre-existing: zustand store still has no persist middleware — hard reload of /appointments/chat/:id logs the user out (carry-over from iteration_3). Not in scope of this WS change."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_conversation_ws.py (new)"
+  ],
+  "success_rate": {
+    "backend": "100% (9/9 pytest)",
+    "frontend": "100% (LIVE badge, WS push render, dedupe, no-polling all verified)"
+  },
+  "test_credentials": "Admin admin/mindshield_admin_2024. Test patients/counselors created at runtime per test.",
+  "seed_data_creation": "Created throwaway patient + counselor + conversation per test run (via /api/auth/register, /api/admin/invites, /api/auth/counselor/register, /api/admin/connect-to-counselor). No seeded production data modified.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Conversation WS realtime feature is fully working both at backend (9 pytest cases in /app/backend/tests/test_conversation_ws.py) and frontend layer (LIVE badge, dedupe, no-poll). The same K8s ingress limitation that affects /api/ws/admin/notifications also affects /api/ws/conversations/{id}: custom 4401/4403/4404 WS close codes are translated to a generic HTTP 403 handshake rejection by the proxy, but the auth/access control is enforced correctly. Pre-existing P2: zustand auth state lost on hard reload — for any future UI testing of authed chat pages, use SPA navigation (history.pushState + popstate) after onboarding via the UI, do NOT use page.goto for deep links.",
+  "rca of the issue": "N/A — feature works end-to-end. The only minor: WS custom close codes don't surface client-side because the K8s ingress closes the handshake with HTTP 403 instead of forwarding the WebSocket close frame. Mitigation if codes are needed client-side: send a JSON error frame before close (e.g., await ws.send_json({error: 'unauthorized'}) then ws.close()) so the client can read the reason. Not blocking for the current feature."
+}
