@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { Bell, AlertTriangle, Flag, X, Check, UserPlus, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -21,6 +22,7 @@ export default function AdminNotificationBell() {
   const [loading, setLoading] = useState(false);
   const [connecting, setConnecting] = useState(null);
   const panelRef = useRef(null);
+  const bellRef = useRef(null);
   const authHeaders = { Authorization: `Bearer ${user?.token}` };
 
   // Poll unread count every 5s
@@ -30,10 +32,12 @@ export default function AdminNotificationBell() {
     return () => clearInterval(interval);
   }, []);
 
-  // Close on outside click
+  // Close on outside click (handles both the bell and the portaled panel)
   useEffect(() => {
     const handler = (e) => {
-      if (panelRef.current && !panelRef.current.contains(e.target)) setOpen(false);
+      const inPanel = panelRef.current && panelRef.current.contains(e.target);
+      const inBell = bellRef.current && bellRef.current.contains(e.target);
+      if (!inPanel && !inBell) setOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -103,9 +107,10 @@ export default function AdminNotificationBell() {
   };
 
   return (
-    <div className="relative" ref={panelRef} data-testid="notification-bell-container">
+    <div className="relative" data-testid="notification-bell-container">
       {/* Bell Button */}
       <button
+        ref={bellRef}
         onClick={togglePanel}
         data-testid="notification-bell-btn"
         className="relative p-2 rounded-xl text-[#A3B8AF] hover:text-[#F0F4F2] hover:bg-white/5 transition-all duration-300"
@@ -118,27 +123,32 @@ export default function AdminNotificationBell() {
         )}
       </button>
 
-      {/* Dropdown Panel */}
-      {open && (
-        <div className="absolute right-0 top-12 w-96 rounded-2xl glass-strong border border-[#2A4036] shadow-2xl z-[200] animate-fade-up" data-testid="notification-panel">
-          <div className="flex items-center justify-between p-4 border-b border-[#2A4036]">
-            <h3 className="font-['Manrope'] font-bold text-sm text-[#F0F4F2]">Notifications</h3>
-            <div className="flex items-center gap-2">
+      {/* Dropdown Panel — rendered to document.body via Portal so it escapes the admin header's backdrop-filter stacking context */}
+      {open && createPortal(
+        <div
+          className="fixed top-16 right-4 lg:right-8 w-[420px] max-w-[92vw] rounded-2xl border-2 border-[#6B8E7B]/40 shadow-[0_24px_60px_-12px_rgba(0,0,0,0.95)] animate-fade-up overflow-hidden"
+          style={{ backgroundColor: "#0B1614", zIndex: 9999 }}
+          data-testid="notification-panel"
+          ref={panelRef}
+        >
+          <div className="flex items-center justify-between p-4 border-b border-[#2A4036]" style={{ backgroundColor: "#14221D" }}>
+            <h3 className="font-['Manrope'] font-extrabold text-base text-white tracking-tight">Notifications</h3>
+            <div className="flex items-center gap-3">
               {count > 0 && (
-                <button onClick={markAllRead} data-testid="mark-all-read-btn" className="text-[10px] text-[#6B8E7B] hover:text-[#83A894] transition-colors">
+                <button onClick={markAllRead} data-testid="mark-all-read-btn" className="text-xs font-semibold text-[#83A894] hover:text-[#A3D4B7] transition-colors">
                   Mark all read
                 </button>
               )}
-              <button onClick={() => setOpen(false)} className="text-[#A3B8AF] hover:text-[#F0F4F2]">
+              <button onClick={() => setOpen(false)} className="text-[#A3B8AF] hover:text-white">
                 <X className="w-4 h-4" />
               </button>
             </div>
           </div>
 
-          <ScrollArea className="max-h-[400px]">
+          <ScrollArea className="max-h-[440px]">
             {loading && <div className="p-6 text-center text-sm text-[#A3B8AF]">Loading...</div>}
             {!loading && notifications.length === 0 && (
-              <div className="p-6 text-center text-sm text-[#A3B8AF]" data-testid="no-notifications">No notifications yet</div>
+              <div className="p-8 text-center text-sm text-[#A3B8AF]" data-testid="no-notifications">No notifications yet</div>
             )}
             {!loading && notifications.map((n) => {
               const conf = TYPE_CONFIG[n.type] || TYPE_CONFIG.CRISIS;
@@ -146,31 +156,32 @@ export default function AdminNotificationBell() {
               return (
                 <div
                   key={n.id}
-                  className={`p-4 border-b border-[#2A4036] transition-all duration-300 ${n.read ? "opacity-60" : "bg-white/[0.02]"}`}
+                  className="p-4 border-b border-[#2A4036] transition-all duration-300"
+                  style={{ backgroundColor: n.read ? "#0B1614" : "#14221D", opacity: n.read ? 0.85 : 1 }}
                   data-testid={`notification-${n.id}`}
                 >
                   <div className="flex gap-3">
-                    <div className={`w-8 h-8 rounded-lg ${conf.bg} flex items-center justify-center flex-shrink-0 mt-0.5`}>
-                      <Icon className="w-4 h-4" style={{ color: conf.color }} />
+                    <div className={`w-9 h-9 rounded-lg ${conf.bg} flex items-center justify-center flex-shrink-0 mt-0.5 border border-white/10`}>
+                      <Icon className="w-[18px] h-[18px]" style={{ color: conf.color }} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs font-medium" style={{ color: conf.color }}>{conf.label}</span>
-                        <span className="text-[10px] text-[#A3B8AF] flex-shrink-0">{timeAgo(n.created_at)}</span>
+                        <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: conf.color }}>{conf.label}</span>
+                        <span className="text-[11px] font-medium text-[#A3B8AF] flex-shrink-0">{timeAgo(n.created_at)}</span>
                       </div>
-                      <p className="text-sm text-[#F0F4F2] font-medium mt-0.5">{n.title}</p>
-                      <p className="text-xs text-[#A3B8AF] mt-0.5 leading-relaxed">{n.message}</p>
+                      <p className="text-[15px] text-white font-bold mt-1 leading-snug">{n.title}</p>
+                      <p className="text-[13px] text-[#D4DCD8] mt-1 leading-relaxed font-medium">{n.message}</p>
 
                       {/* Actions */}
-                      <div className="flex items-center gap-2 mt-2">
+                      <div className="flex items-center gap-2 mt-3">
                         {n.type === "CRISIS" && n.user_id && (
                           <Button
                             onClick={() => connectToCounselor(n.user_id)}
                             disabled={connecting === n.user_id}
                             data-testid={`connect-counselor-${n.id}`}
-                            className="h-7 rounded-lg bg-[#6B8E7B]/20 hover:bg-[#6B8E7B]/30 text-[#6B8E7B] text-[10px] px-2.5"
+                            className="h-8 rounded-lg bg-[#6B8E7B]/30 hover:bg-[#6B8E7B]/50 text-[#A3D4B7] text-xs font-semibold px-3 border border-[#6B8E7B]/40"
                           >
-                            <UserPlus className="w-3 h-3 mr-1" />
+                            <UserPlus className="w-3.5 h-3.5 mr-1.5" />
                             {connecting === n.user_id ? "Connecting..." : "Connect to Counselor"}
                           </Button>
                         )}
@@ -178,9 +189,9 @@ export default function AdminNotificationBell() {
                           <button
                             onClick={() => markRead(n.id)}
                             data-testid={`mark-read-${n.id}`}
-                            className="text-[10px] text-[#A3B8AF] hover:text-[#6B8E7B] transition-colors flex items-center gap-1"
+                            className="text-xs font-semibold text-[#A3B8AF] hover:text-[#83A894] transition-colors flex items-center gap-1"
                           >
-                            <Check className="w-3 h-3" /> Read
+                            <Check className="w-3.5 h-3.5" /> Mark read
                           </button>
                         )}
                       </div>
@@ -190,7 +201,8 @@ export default function AdminNotificationBell() {
               );
             })}
           </ScrollArea>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
