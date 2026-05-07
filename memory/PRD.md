@@ -41,19 +41,28 @@ Build a complete, production-ready AI-Enhanced Mental Health Platform called Min
 - [x] Content moderation (flag/unflag/delete forum posts)
 - [x] Crisis alerts log with user pseudonyms
 
+### Phase 4 (2026-05-07) - Real-time Safety & Counselor Self-Service
+- [x] Admin Crisis Notification System (5s poll, badge, dropdown panel)
+- [x] CRISIS notifications triggered from AI chat AND counselor conversations
+- [x] One-click "Connect to Counselor" from a CRISIS notification (auto-picks least-loaded counselor, idempotent)
+- [x] Mark single / mark-all-read for notifications
+- [x] AI Auto-Flagging of forum posts (Claude background task) → FLAGGED_POST admin notification + flag_reason surfaced in AdminModeration UI
+- [x] Counselor Availability Editor in CounselorDashboard (add/remove slots, save) backed by GET /api/counselor/profile + PUT /api/counselor/availability
+
 ## Credentials
 - Admin: username=admin, password=mindshield_admin_2024
 - Counselor Access Code: MINDSHIELD-COUNSELOR (fallback) or admin-generated invite codes
 
 ## Prioritized Backlog
 ### P1
-- WebSocket for true real-time chat
-- Counselor availability/scheduling management
+- WebSocket for true real-time chat (replace 5s polling for notifications/messages)
+- Persist auth state across hard reload (wrap zustand `useStore` with `persist` middleware) — currently F5 on /counselor/dashboard or /admin/dashboard logs the user out
 - Session summary reports for counselors
 
 ### P2
 - Dark/Light theme toggle
 - Multi-language (Yoruba, Igbo, Hausa)
-- AI-moderated forum content auto-flagging
+- Forum/messages pagination
 - Data export for mood history
 - Push notifications
+- Visibility-aware notification polling pause
