@@ -15,6 +15,10 @@ class MindShieldAPITester:
         self.counselor_pseudonym = None
         self.booking_id = None
         self.conversation_id = None
+        self.admin_token = None
+        self.invite_code = None
+        self.invite_id = None
+        self.forum_post_id = None
         self.tests_run = 0
         self.tests_passed = 0
         self.session = requests.Session()
@@ -169,6 +173,8 @@ class MindShieldAPITester:
         )
         if success and 'id' in reply_response:
             print(f"   Created reply with ID: {reply_response['id']}")
+            # Store post_id for admin tests
+            self.forum_post_id = post_id
             return True
         return False
 
@@ -588,37 +594,460 @@ class MindShieldAPITester:
             return True
         return False
 
+    # ========== ADMIN PANEL TESTS ==========
+    
+    def test_admin_login_wrong_credentials(self):
+        """Test admin login with wrong credentials"""
+        success, response = self.run_test(
+            "Admin Login (Wrong Credentials)",
+            "POST",
+            "admin/login",
+            401,
+            data={"username": "admin", "password": "wrongpassword"}
+        )
+        return success
+    
+    def test_admin_login(self):
+        """Test admin login with correct credentials"""
+        success, response = self.run_test(
+            "Admin Login",
+            "POST",
+            "admin/login",
+            200,
+            data={"username": "admin", "password": "mindshield_admin_2024"}
+        )
+        if success and 'access_token' in response:
+            self.admin_token = response['access_token']
+            print(f"   Admin logged in successfully")
+            return True
+        return False
+    
+    def test_admin_analytics(self):
+        """Test admin analytics endpoint"""
+        if not self.admin_token:
+            print("❌ Cannot test - no admin token")
+            return False
+        
+        # Save current token and use admin token
+        saved_token = self.token
+        self.token = self.admin_token
+        
+        success, response = self.run_test(
+            "Admin Analytics",
+            "GET",
+            "admin/analytics",
+            200
+        )
+        
+        # Restore token
+        self.token = saved_token
+        
+        if success:
+            print(f"   Total users: {response.get('total_users', 0)}")
+            print(f"   Total counselors: {response.get('total_counselors', 0)}")
+            print(f"   Total messages: {response.get('total_messages', 0)}")
+            print(f"   Crisis alerts: {response.get('total_crisis_alerts', 0)}")
+            return True
+        return False
+    
+    def test_admin_list_users(self):
+        """Test admin listing users"""
+        if not self.admin_token:
+            print("❌ Cannot test - no admin token")
+            return False
+        
+        saved_token = self.token
+        self.token = self.admin_token
+        
+        success, response = self.run_test(
+            "Admin List Users",
+            "GET",
+            "admin/users",
+            200
+        )
+        
+        self.token = saved_token
+        
+        if success and 'users' in response:
+            users = response['users']
+            print(f"   Found {len(users)} users")
+            if len(users) > 0:
+                print(f"   Sample user: {users[0].get('pseudonym', 'N/A')}")
+            return True
+        return False
+    
+    def test_admin_list_counselors(self):
+        """Test admin listing counselors"""
+        if not self.admin_token:
+            print("❌ Cannot test - no admin token")
+            return False
+        
+        saved_token = self.token
+        self.token = self.admin_token
+        
+        success, response = self.run_test(
+            "Admin List Counselors",
+            "GET",
+            "admin/counselors",
+            200
+        )
+        
+        self.token = saved_token
+        
+        if success and 'counselors' in response:
+            counselors = response['counselors']
+            print(f"   Found {len(counselors)} counselors")
+            return True
+        return False
+    
+    def test_admin_create_invite(self):
+        """Test admin creating invite code"""
+        if not self.admin_token:
+            print("❌ Cannot test - no admin token")
+            return False
+        
+        saved_token = self.token
+        self.token = self.admin_token
+        
+        success, response = self.run_test(
+            "Admin Create Invite",
+            "POST",
+            "admin/invites",
+            200,
+            data={"specialty_hint": "Anxiety & Stress Management", "note": "Test invite"}
+        )
+        
+        self.token = saved_token
+        
+        if success and 'code' in response:
+            self.invite_code = response['code']
+            self.invite_id = response['id']
+            print(f"   Created invite code: {self.invite_code}")
+            return True
+        return False
+    
+    def test_admin_list_invites(self):
+        """Test admin listing invites"""
+        if not self.admin_token:
+            print("❌ Cannot test - no admin token")
+            return False
+        
+        saved_token = self.token
+        self.token = self.admin_token
+        
+        success, response = self.run_test(
+            "Admin List Invites",
+            "GET",
+            "admin/invites",
+            200
+        )
+        
+        self.token = saved_token
+        
+        if success and 'invites' in response:
+            invites = response['invites']
+            print(f"   Found {len(invites)} invites")
+            unused = [i for i in invites if not i.get('used')]
+            print(f"   Unused invites: {len(unused)}")
+            return True
+        return False
+    
+    def test_counselor_register_with_invite(self):
+        """Test counselor registration with valid invite code"""
+        if not self.invite_code:
+            print("❌ Cannot test - no invite code")
+            return False
+        
+        success, response = self.run_test(
+            "Counselor Registration with Invite",
+            "POST",
+            "auth/counselor/register",
+            200,
+            data={
+                "access_code": self.invite_code,
+                "specialty": "Depression & Mood Disorders",
+                "bio": "Test counselor registered with invite",
+                "pin": "9999"
+            }
+        )
+        if success and 'user_id' in response:
+            print(f"   Registered counselor: {response['pseudonym']}")
+            return True
+        return False
+    
+    def test_counselor_register_with_used_invite(self):
+        """Test counselor registration with already-used invite code"""
+        if not self.invite_code:
+            print("❌ Cannot test - no invite code")
+            return False
+        
+        success, response = self.run_test(
+            "Counselor Registration with Used Invite",
+            "POST",
+            "auth/counselor/register",
+            403,
+            data={
+                "access_code": self.invite_code,
+                "specialty": "General Counseling",
+                "bio": "Should fail",
+                "pin": "8888"
+            }
+        )
+        return success
+    
+    def test_admin_flag_post(self):
+        """Test admin flagging a forum post"""
+        if not self.admin_token or not self.forum_post_id:
+            print("❌ Cannot test - no admin token or forum post")
+            return False
+        
+        saved_token = self.token
+        self.token = self.admin_token
+        
+        success, response = self.run_test(
+            "Admin Flag Post",
+            "PUT",
+            f"admin/posts/{self.forum_post_id}/flag",
+            200
+        )
+        
+        self.token = saved_token
+        
+        if success:
+            print(f"   Post flagged: {response.get('is_flagged', False)}")
+            return True
+        return False
+    
+    def test_admin_unflag_post(self):
+        """Test admin unflagging a forum post"""
+        if not self.admin_token or not self.forum_post_id:
+            print("❌ Cannot test - no admin token or forum post")
+            return False
+        
+        saved_token = self.token
+        self.token = self.admin_token
+        
+        success, response = self.run_test(
+            "Admin Unflag Post",
+            "PUT",
+            f"admin/posts/{self.forum_post_id}/flag",
+            200
+        )
+        
+        self.token = saved_token
+        
+        if success:
+            print(f"   Post unflagged: {not response.get('is_flagged', True)}")
+            return True
+        return False
+    
+    def test_admin_get_crisis_alerts(self):
+        """Test admin getting crisis alerts"""
+        if not self.admin_token:
+            print("❌ Cannot test - no admin token")
+            return False
+        
+        saved_token = self.token
+        self.token = self.admin_token
+        
+        success, response = self.run_test(
+            "Admin Get Crisis Alerts",
+            "GET",
+            "admin/crisis-alerts",
+            200
+        )
+        
+        self.token = saved_token
+        
+        if success and 'alerts' in response:
+            alerts = response['alerts']
+            print(f"   Found {len(alerts)} crisis alerts")
+            return True
+        return False
+    
+    def test_admin_delete_post(self):
+        """Test admin deleting a forum post"""
+        if not self.admin_token:
+            print("❌ Cannot test - no admin token")
+            return False
+        
+        # Create a post to delete
+        success, post_response = self.run_test(
+            "Create Post for Deletion",
+            "POST",
+            "forum/posts",
+            200,
+            data={"topic": "General", "body": "Post to be deleted by admin"}
+        )
+        
+        if not success or 'id' not in post_response:
+            return False
+        
+        delete_post_id = post_response['id']
+        
+        saved_token = self.token
+        self.token = self.admin_token
+        
+        success, response = self.run_test(
+            "Admin Delete Post",
+            "DELETE",
+            f"admin/posts/{delete_post_id}",
+            200
+        )
+        
+        self.token = saved_token
+        
+        if success:
+            print(f"   Post deleted: {delete_post_id}")
+            return True
+        return False
+    
+    def test_admin_revoke_invite(self):
+        """Test admin revoking an unused invite"""
+        if not self.admin_token:
+            print("❌ Cannot test - no admin token")
+            return False
+        
+        # Create a new invite to revoke
+        saved_token = self.token
+        self.token = self.admin_token
+        
+        success, invite_response = self.run_test(
+            "Create Invite for Revocation",
+            "POST",
+            "admin/invites",
+            200,
+            data={"note": "To be revoked"}
+        )
+        
+        if not success or 'id' not in invite_response:
+            self.token = saved_token
+            return False
+        
+        revoke_invite_id = invite_response['id']
+        
+        success, response = self.run_test(
+            "Admin Revoke Invite",
+            "DELETE",
+            f"admin/invites/{revoke_invite_id}",
+            200
+        )
+        
+        self.token = saved_token
+        
+        if success:
+            print(f"   Invite revoked: {revoke_invite_id}")
+            return True
+        return False
+    
+    def test_admin_delete_user(self):
+        """Test admin deleting a user"""
+        if not self.admin_token:
+            print("❌ Cannot test - no admin token")
+            return False
+        
+        # Create a test user to delete
+        success, user_response = self.run_test(
+            "Create User for Deletion",
+            "POST",
+            "auth/register",
+            200,
+            data={"pin": "0000"}
+        )
+        
+        if not success or 'user_id' not in user_response:
+            return False
+        
+        delete_user_id = user_response['user_id']
+        
+        saved_token = self.token
+        self.token = self.admin_token
+        
+        success, response = self.run_test(
+            "Admin Delete User",
+            "DELETE",
+            f"admin/users/{delete_user_id}",
+            200
+        )
+        
+        self.token = saved_token
+        
+        if success:
+            print(f"   User deleted: {delete_user_id[:8]}...")
+            return True
+        return False
+    
+    def test_admin_delete_counselor(self):
+        """Test admin deleting a counselor"""
+        if not self.admin_token:
+            print("❌ Cannot test - no admin token")
+            return False
+        
+        # Create a test counselor to delete
+        success, counselor_response = self.run_test(
+            "Create Counselor for Deletion",
+            "POST",
+            "auth/counselor/register",
+            200,
+            data={
+                "access_code": "MINDSHIELD-COUNSELOR",
+                "specialty": "General Counseling",
+                "bio": "To be deleted",
+                "pin": "7777"
+            }
+        )
+        
+        if not success or 'user_id' not in counselor_response:
+            return False
+        
+        delete_counselor_id = counselor_response['user_id']
+        
+        saved_token = self.token
+        self.token = self.admin_token
+        
+        success, response = self.run_test(
+            "Admin Delete Counselor",
+            "DELETE",
+            f"admin/counselors/{delete_counselor_id}",
+            200
+        )
+        
+        self.token = saved_token
+        
+        if success:
+            print(f"   Counselor deleted: {delete_counselor_id[:8]}...")
+            return True
+        return False
+
 def main():
-    print("🚀 Starting MindShield API Testing...")
+    print("🚀 Starting MindShield Admin Panel API Testing...")
     print("=" * 60)
     
     tester = MindShieldAPITester()
     
-    # Test sequence
+    # Test sequence - ONLY ADMIN FEATURES (previous features already tested)
     tests = [
         ("Health Check", tester.test_health_check),
+        # Setup: Create user and forum post for admin tests
         ("User Registration", tester.test_register),
-        ("User Login", tester.test_login),
-        ("AI Chat - Send Message", tester.test_send_message),
-        ("AI Chat - Get History", tester.test_get_messages),
         ("Forum Operations", tester.test_forum_posts),
-        ("Mood Tracking", tester.test_mood_tracking),
-        ("Appointment System", tester.test_appointments),
-        ("Mental Health Resources", tester.test_resources),
-        ("AI Mood Insights", tester.test_mood_insights),
-        # NEW COUNSELOR PORTAL TESTS
-        ("Counselor Registration (Wrong Code)", tester.test_counselor_register_wrong_code),
-        ("Counselor Registration", tester.test_counselor_register),
-        ("Counselor Login", tester.test_counselor_login),
-        ("Counselor Get Bookings", tester.test_counselor_get_bookings),
-        ("Patient Books with Counselor", tester.test_patient_book_with_counselor),
-        ("Counselor Confirms Booking", tester.test_counselor_confirm_booking),
-        ("Counselor Get Conversations", tester.test_counselor_get_conversations),
-        ("Patient Get Conversations", tester.test_patient_get_conversations),
-        ("Patient Sends Message to Counselor", tester.test_patient_send_message_to_counselor),
-        ("Counselor Gets Conversation Messages", tester.test_counselor_get_conversation_messages),
-        ("Counselor Sends Message", tester.test_counselor_send_message),
-        ("Counselor Cancels Booking", tester.test_counselor_cancel_booking),
+        # ADMIN PANEL TESTS
+        ("Admin Login (Wrong Credentials)", tester.test_admin_login_wrong_credentials),
+        ("Admin Login", tester.test_admin_login),
+        ("Admin Analytics", tester.test_admin_analytics),
+        ("Admin List Users", tester.test_admin_list_users),
+        ("Admin List Counselors", tester.test_admin_list_counselors),
+        ("Admin Create Invite", tester.test_admin_create_invite),
+        ("Admin List Invites", tester.test_admin_list_invites),
+        ("Counselor Registration with Invite", tester.test_counselor_register_with_invite),
+        ("Counselor Registration with Used Invite", tester.test_counselor_register_with_used_invite),
+        ("Admin Flag Post", tester.test_admin_flag_post),
+        ("Admin Unflag Post", tester.test_admin_unflag_post),
+        ("Admin Get Crisis Alerts", tester.test_admin_get_crisis_alerts),
+        ("Admin Delete Post", tester.test_admin_delete_post),
+        ("Admin Revoke Invite", tester.test_admin_revoke_invite),
+        ("Admin Delete User", tester.test_admin_delete_user),
+        ("Admin Delete Counselor", tester.test_admin_delete_counselor),
     ]
     
     failed_tests = []

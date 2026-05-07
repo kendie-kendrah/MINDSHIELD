@@ -231,8 +231,10 @@ COUNSELOR_NAMES = ['Serenity', 'Harmony', 'Compass', 'Resilience', 'Clarity', 'C
 
 @api_router.post("/auth/counselor/register")
 async def counselor_register(body: CounselorRegisterRequest):
-    if body.access_code != COUNSELOR_ACCESS_CODE:
-        raise HTTPException(status_code=403, detail='Invalid access code')
+    # Check invite code first, then fall back to generic access code
+    invite = await db.invite_codes.find_one({'code': body.access_code, 'used': False})
+    if not invite and body.access_code != COUNSELOR_ACCESS_CODE:
+        raise HTTPException(status_code=403, detail='Invalid or expired invite code')
 
     counselor_id = str(uuid.uuid4())
     pseudonym = f"Dr. {random.choice(COUNSELOR_NAMES)}{random.randint(100, 999)}"
@@ -254,6 +256,13 @@ async def counselor_register(body: CounselorRegisterRequest):
         'created_at': datetime.now(timezone.utc).isoformat()
     }
     await db.counselors.insert_one(counselor_doc)
+
+    # Mark invite as used
+    if invite:
+        await db.invite_codes.update_one(
+            {'id': invite['id']},
+            {'$set': {'used': True, 'used_by': counselor_id, 'used_at': datetime.now(timezone.utc).isoformat()}}
+        )
 
     token = create_token(counselor_id, role='counselor')
     return {
@@ -685,6 +694,171 @@ async def send_patient_message(conversation_id: str, body: ConversationMessageRe
     del msg_doc['_id']
     return msg_doc
 
+import string as string_module
+
+# ========== ADMIN ROUTES ==========
+
+ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'admin')
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'mindshield_admin_2024')
+
+class AdminLoginRequest(BaseModel):
+    username: str
+    password: str
+
+class CreateInviteRequest(BaseModel):
+    specialty_hint: Optional[str] = None
+    note: Optional[str] = None
+
+async def get_current_admin(authorization: Optional[str] = Header(None)):
+    if not authorization or not authorization.startswith('Bearer '):
+        raise HTTPException(status_code=401, detail='Not authenticated')
+    token = authorization.split(' ')[1]
+    token_data = verify_token(token)
+    if not token_data or token_data.get('role') != 'admin':
+        raise HTTPException(status_code=403, detail='Admin access required')
+    return {'role': 'admin', 'username': ADMIN_USERNAME}
+
+@api_router.post("/admin/login")
+async def admin_login(body: AdminLoginRequest):
+    if body.username != ADMIN_USERNAME or body.password != ADMIN_PASSWORD:
+        raise HTTPException(status_code=401, detail='Invalid admin credentials')
+    token = create_token('admin', role='admin')
+    return {'access_token': token, 'role': 'admin', 'username': ADMIN_USERNAME}
+
+@api_router.get("/admin/analytics")
+async def get_analytics(admin=Depends(get_current_admin)):
+    total_users = await db.users.count_documents({})
+    total_counselors = await db.counselors.count_documents({})
+    total_messages = await db.messages.count_documents({})
+    total_forum_posts = await db.forum_posts.count_documents({})
+    total_mood_logs = await db.mood_logs.count_documents({})
+    total_appointments = await db.appointments.count_documents({})
+    pending_appointments = await db.appointments.count_documents({'status': 'PENDING'})
+    confirmed_appointments = await db.appointments.count_documents({'status': 'CONFIRMED'})
+    total_conversations = await db.conversations.count_documents({})
+    total_crisis_alerts = await db.crisis_alerts.count_documents({})
+    flagged_posts = await db.forum_posts.count_documents({'is_flagged': True})
+    pending_invites = await db.invite_codes.count_documents({'used': False})
+    seven_days_ago = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
+    recent_users = await db.users.count_documents({'created_at': {'$gte': seven_days_ago}})
+    recent_messages = await db.messages.count_documents({'created_at': {'$gte': seven_days_ago}})
+    recent_crisis = await db.crisis_alerts.count_documents({'created_at': {'$gte': seven_days_ago}})
+    mood_pipeline = [{'$group': {'_id': None, 'avg': {'$avg': '$mood_score'}}}]
+    mood_avg_result = await db.mood_logs.aggregate(mood_pipeline).to_list(1)
+    avg_mood = round(mood_avg_result[0]['avg'], 1) if mood_avg_result else 0
+    return {
+        'total_users': total_users, 'total_counselors': total_counselors,
+        'total_messages': total_messages, 'total_forum_posts': total_forum_posts,
+        'total_mood_logs': total_mood_logs, 'total_appointments': total_appointments,
+        'pending_appointments': pending_appointments, 'confirmed_appointments': confirmed_appointments,
+        'total_conversations': total_conversations, 'total_crisis_alerts': total_crisis_alerts,
+        'flagged_posts': flagged_posts, 'pending_invites': pending_invites,
+        'recent_users': recent_users, 'recent_messages': recent_messages,
+        'recent_crisis': recent_crisis, 'avg_mood': avg_mood
+    }
+
+@api_router.get("/admin/users")
+async def list_users(admin=Depends(get_current_admin)):
+    users = await db.users.find({}, {'_id': 0}).sort('created_at', -1).to_list(500)
+    for u in users:
+        u['message_count'] = await db.messages.count_documents({'sender_id': u['id'], 'sender_type': 'user'})
+        u['mood_count'] = await db.mood_logs.count_documents({'user_id': u['id']})
+        u.pop('pin_hash', None)
+        u.pop('public_key', None)
+    return {'users': users}
+
+@api_router.delete("/admin/users/{user_id}")
+async def remove_user(user_id: str, admin=Depends(get_current_admin)):
+    result = await db.users.delete_one({'id': user_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail='User not found')
+    await db.messages.delete_many({'$or': [{'sender_id': user_id}, {'session_id': user_id}]})
+    await db.mood_logs.delete_many({'user_id': user_id})
+    await db.appointments.delete_many({'user_id': user_id})
+    await db.forum_posts.delete_many({'author_id': user_id})
+    await db.conversations.delete_many({'patient_id': user_id})
+    await db.conversation_messages.delete_many({'sender_id': user_id})
+    return {'deleted': True, 'user_id': user_id}
+
+@api_router.get("/admin/counselors")
+async def admin_list_counselors(admin=Depends(get_current_admin)):
+    counselors = await db.counselors.find({}, {'_id': 0}).sort('created_at', -1).to_list(100)
+    for c in counselors:
+        c['booking_count'] = await db.appointments.count_documents({'counselor_id': c['id']})
+        c['conversation_count'] = await db.conversations.count_documents({'counselor_id': c['id']})
+        c.pop('pin_hash', None)
+    return {'counselors': counselors}
+
+@api_router.delete("/admin/counselors/{counselor_id}")
+async def remove_counselor(counselor_id: str, admin=Depends(get_current_admin)):
+    result = await db.counselors.delete_one({'id': counselor_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail='Counselor not found')
+    await db.appointments.delete_many({'counselor_id': counselor_id})
+    await db.conversations.delete_many({'counselor_id': counselor_id})
+    return {'deleted': True, 'counselor_id': counselor_id}
+
+@api_router.get("/admin/invites")
+async def list_invites(admin=Depends(get_current_admin)):
+    invites = await db.invite_codes.find({}, {'_id': 0}).sort('created_at', -1).to_list(100)
+    return {'invites': invites}
+
+@api_router.post("/admin/invites")
+async def create_invite(body: CreateInviteRequest, admin=Depends(get_current_admin)):
+    code = 'INV-' + ''.join(random.choices(string_module.ascii_uppercase + string_module.digits, k=8))
+    while await db.invite_codes.find_one({'code': code}):
+        code = 'INV-' + ''.join(random.choices(string_module.ascii_uppercase + string_module.digits, k=8))
+    invite_doc = {
+        'id': str(uuid.uuid4()), 'code': code,
+        'specialty_hint': body.specialty_hint, 'note': body.note,
+        'used': False, 'used_by': None, 'used_at': None,
+        'created_at': datetime.now(timezone.utc).isoformat()
+    }
+    await db.invite_codes.insert_one(invite_doc)
+    del invite_doc['_id']
+    return invite_doc
+
+@api_router.delete("/admin/invites/{invite_id}")
+async def revoke_invite(invite_id: str, admin=Depends(get_current_admin)):
+    result = await db.invite_codes.delete_one({'id': invite_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail='Invite not found')
+    return {'deleted': True, 'invite_id': invite_id}
+
+@api_router.get("/admin/posts")
+async def admin_list_posts(admin=Depends(get_current_admin)):
+    posts = await db.forum_posts.find({}, {'_id': 0}).sort('created_at', -1).to_list(200)
+    return {'posts': posts}
+
+@api_router.get("/admin/flagged-posts")
+async def list_flagged_posts(admin=Depends(get_current_admin)):
+    posts = await db.forum_posts.find({'is_flagged': True}, {'_id': 0}).sort('created_at', -1).to_list(100)
+    return {'posts': posts}
+
+@api_router.put("/admin/posts/{post_id}/flag")
+async def toggle_flag_post(post_id: str, admin=Depends(get_current_admin)):
+    post = await db.forum_posts.find_one({'id': post_id}, {'_id': 0})
+    if not post:
+        raise HTTPException(status_code=404, detail='Post not found')
+    new_flag = not post.get('is_flagged', False)
+    await db.forum_posts.update_one({'id': post_id}, {'$set': {'is_flagged': new_flag}})
+    return {'post_id': post_id, 'is_flagged': new_flag}
+
+@api_router.delete("/admin/posts/{post_id}")
+async def remove_post(post_id: str, admin=Depends(get_current_admin)):
+    result = await db.forum_posts.delete_one({'id': post_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail='Post not found')
+    return {'deleted': True, 'post_id': post_id}
+
+@api_router.get("/admin/crisis-alerts")
+async def list_crisis_alerts(admin=Depends(get_current_admin)):
+    alerts = await db.crisis_alerts.find({}, {'_id': 0}).sort('created_at', -1).to_list(200)
+    for a in alerts:
+        u = await db.users.find_one({'id': a.get('user_id')}, {'_id': 0, 'pseudonym': 1})
+        a['user_pseudonym'] = u['pseudonym'] if u else 'Unknown'
+    return {'alerts': alerts}
+
 # ========== SEED DATA ==========
 
 async def seed_resources():
@@ -791,6 +965,9 @@ async def startup_event():
     await db.conversations.create_index('counselor_id')
     await db.conversation_messages.create_index('conversation_id')
     await db.conversation_messages.create_index('created_at')
+    await db.invite_codes.create_index('code', unique=True)
+    await db.invite_codes.create_index('used')
+    await db.crisis_alerts.create_index('created_at')
     await seed_resources()
     await seed_counselors()
     logger.info("MindShield API started - indexes and seed data ready")
