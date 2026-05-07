@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, Header, Query, BackgroundTasks
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, Header, Query, BackgroundTasks, WebSocket, WebSocketDisconnect
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -366,6 +366,30 @@ async def analyze_with_ai(user_id: str, message_text: str):
         }
 
 # --- Admin Notification Helper ---
+class AdminWSManager:
+    def __init__(self):
+        self.connections: List[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.connections.append(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        if websocket in self.connections:
+            self.connections.remove(websocket)
+
+    async def broadcast(self, payload: dict):
+        dead = []
+        for ws in self.connections:
+            try:
+                await ws.send_json(payload)
+            except Exception:
+                dead.append(ws)
+        for ws in dead:
+            self.disconnect(ws)
+
+admin_ws_manager = AdminWSManager()
+
 async def create_admin_notification(ntype, title, message, user_id=None, user_pseudonym=None, metadata=None):
     doc = {
         'id': str(uuid.uuid4()),
@@ -379,6 +403,12 @@ async def create_admin_notification(ntype, title, message, user_id=None, user_ps
         'created_at': datetime.now(timezone.utc).isoformat()
     }
     await db.admin_notifications.insert_one(doc)
+    # Push to all connected admin clients in real-time
+    try:
+        broadcast_doc = {k: v for k, v in doc.items() if k != '_id'}
+        await admin_ws_manager.broadcast({'event': 'notification.new', 'notification': broadcast_doc})
+    except Exception as e:
+        logger.error(f"Notification broadcast failed: {e}")
     return doc
 
 # --- AI Content Moderation ---
@@ -978,7 +1008,41 @@ async def mark_all_notifications_read(admin=Depends(get_current_admin)):
         {'read': False},
         {'$set': {'read': True, 'read_at': datetime.now(timezone.utc).isoformat()}}
     )
+    try:
+        await admin_ws_manager.broadcast({'event': 'notification.read_all'})
+    except Exception:
+        pass
     return {'modified': result.modified_count}
+
+@api_router.delete("/admin/notifications")
+async def clear_all_notifications(admin=Depends(get_current_admin)):
+    result = await db.admin_notifications.delete_many({})
+    try:
+        await admin_ws_manager.broadcast({'event': 'notification.cleared'})
+    except Exception:
+        pass
+    return {'deleted': result.deleted_count}
+
+@app.websocket("/api/ws/admin/notifications")
+async def admin_notifications_ws(websocket: WebSocket, token: Optional[str] = Query(default=None)):
+    # WebSocket auth via ?token= (browsers can't set Authorization headers on WS upgrade)
+    token_data = verify_token(token) if token else None
+    if not token_data or token_data.get('role') != 'admin':
+        await websocket.close(code=4401)
+        return
+    await admin_ws_manager.connect(websocket)
+    try:
+        await websocket.send_json({'event': 'connected'})
+        while True:
+            # Keep the connection alive; client may send pings
+            msg = await websocket.receive_text()
+            if msg == 'ping':
+                await websocket.send_text('pong')
+    except WebSocketDisconnect:
+        admin_ws_manager.disconnect(websocket)
+    except Exception as e:
+        logger.error(f"WS error: {e}")
+        admin_ws_manager.disconnect(websocket)
 
 @api_router.post("/admin/connect-to-counselor")
 async def admin_connect_user_to_counselor(body: ConnectToCounselorRequest, admin=Depends(get_current_admin)):

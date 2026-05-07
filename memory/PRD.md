@@ -49,14 +49,21 @@ Build a complete, production-ready AI-Enhanced Mental Health Platform called Min
 - [x] AI Auto-Flagging of forum posts (Claude background task) → FLAGGED_POST admin notification + flag_reason surfaced in AdminModeration UI
 - [x] Counselor Availability Editor in CounselorDashboard (add/remove slots, save) backed by GET /api/counselor/profile + PUT /api/counselor/availability
 
+### Phase 5 (2026-05-07) - Realtime Push & Notification Polish
+- [x] Replaced 5s polling with WebSocket (`/api/ws/admin/notifications?token=`) — instant push of new CRISIS / FLAGGED_POST events to connected admins
+- [x] Auto-reconnect with 3s backoff on disconnect
+- [x] Live/Offline status badge in panel header
+- [x] Toast popup on every incoming WS notification
+- [x] DELETE /api/admin/notifications + "Clear all" button in panel for resetting
+
 ## Credentials
 - Admin: username=admin, password=mindshield_admin_2024
 - Counselor Access Code: MINDSHIELD-COUNSELOR (fallback) or admin-generated invite codes
 
 ## Prioritized Backlog
 ### P1
-- WebSocket for true real-time chat (replace 5s polling for notifications/messages)
-- Persist auth state across hard reload (wrap zustand `useStore` with `persist` middleware) — currently F5 on /counselor/dashboard or /admin/dashboard logs the user out
+- Persist Zustand auth state across hard reload (wrap `useStore` with `zustand/middleware` `persist`) — currently F5 logs the user out
+- WebSocket for true real-time **counselor↔patient chat** (replace 3s message polling, like notifications)
 - Session summary reports for counselors
 
 ### P2

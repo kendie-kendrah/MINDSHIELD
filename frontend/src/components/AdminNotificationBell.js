@@ -8,6 +8,8 @@ import useStore from "@/store/useStore";
 import axios from "axios";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+// Build the ws:// or wss:// URL from the configured backend URL
+const WS_URL = `${process.env.REACT_APP_BACKEND_URL.replace(/^http/, "ws")}/api/ws/admin/notifications`;
 
 const TYPE_CONFIG = {
   CRISIS: { icon: AlertTriangle, color: "#E17055", bg: "bg-[#E17055]/10", label: "Crisis" },
@@ -21,16 +23,81 @@ export default function AdminNotificationBell() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
   const [connecting, setConnecting] = useState(null);
+  const [wsConnected, setWsConnected] = useState(false);
   const panelRef = useRef(null);
   const bellRef = useRef(null);
+  const wsRef = useRef(null);
+  const reconnectTimerRef = useRef(null);
   const authHeaders = { Authorization: `Bearer ${user?.token}` };
 
-  // Poll unread count every 5s
+  // Initial fetch on mount
   useEffect(() => {
     fetchCount();
-    const interval = setInterval(fetchCount, 5000);
-    return () => clearInterval(interval);
+    fetchNotifications();
   }, []);
+
+  // WebSocket: real-time push of new notifications and read events
+  useEffect(() => {
+    if (!user?.token) return;
+    let cancelled = false;
+
+    const connect = () => {
+      if (cancelled) return;
+      try {
+        const ws = new WebSocket(`${WS_URL}?token=${encodeURIComponent(user.token)}`);
+        wsRef.current = ws;
+
+        ws.onopen = () => setWsConnected(true);
+
+        ws.onmessage = (evt) => {
+          try {
+            const data = JSON.parse(evt.data);
+            if (data.event === "notification.new" && data.notification) {
+              setNotifications((prev) => [data.notification, ...prev]);
+              setCount((c) => c + 1);
+              const isCrisis = data.notification.type === "CRISIS";
+              toast(isCrisis ? "🚨 Crisis Detected" : "🚩 Flagged Post", {
+                description: data.notification.title,
+                duration: 6000,
+              });
+            } else if (data.event === "notification.read_all") {
+              setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+              setCount(0);
+            } else if (data.event === "notification.cleared") {
+              setNotifications([]);
+              setCount(0);
+            }
+          } catch (e) { /* ignore */ }
+        };
+
+        ws.onclose = () => {
+          setWsConnected(false);
+          wsRef.current = null;
+          if (!cancelled) {
+            // Reconnect with backoff
+            reconnectTimerRef.current = setTimeout(connect, 3000);
+          }
+        };
+
+        ws.onerror = () => {
+          try { ws.close(); } catch (e) { /* ignore */ }
+        };
+      } catch (e) {
+        reconnectTimerRef.current = setTimeout(connect, 5000);
+      }
+    };
+
+    connect();
+
+    return () => {
+      cancelled = true;
+      if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
+      if (wsRef.current) {
+        try { wsRef.current.close(); } catch (e) { /* ignore */ }
+        wsRef.current = null;
+      }
+    };
+  }, [user?.token]);
 
   // Close on outside click (handles both the bell and the portaled panel)
   useEffect(() => {
@@ -60,7 +127,11 @@ export default function AdminNotificationBell() {
   };
 
   const togglePanel = () => {
-    if (!open) fetchNotifications();
+    if (!open) {
+      // Quick refresh in case anything was missed while WS was down
+      fetchNotifications();
+      fetchCount();
+    }
     setOpen(!open);
   };
 
@@ -78,6 +149,18 @@ export default function AdminNotificationBell() {
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
       setCount(0);
     } catch (e) { /* silent */ }
+  };
+
+  const clearAll = async () => {
+    if (!window.confirm("Delete ALL notifications? This cannot be undone.")) return;
+    try {
+      await axios.delete(`${API}/admin/notifications`, { headers: authHeaders });
+      setNotifications([]);
+      setCount(0);
+      toast.success("All notifications cleared");
+    } catch (e) {
+      toast.error("Failed to clear notifications");
+    }
   };
 
   const connectToCounselor = async (userId) => {
@@ -132,11 +215,25 @@ export default function AdminNotificationBell() {
           ref={panelRef}
         >
           <div className="flex items-center justify-between p-4 border-b border-[#2A4036]" style={{ backgroundColor: "#14221D" }}>
-            <h3 className="font-['Manrope'] font-extrabold text-base text-white tracking-tight">Notifications</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="font-['Manrope'] font-extrabold text-base text-white tracking-tight">Notifications</h3>
+              <span
+                className={`inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${wsConnected ? "bg-[#4ADE80]/15 text-[#4ADE80]" : "bg-[#A3B8AF]/15 text-[#A3B8AF]"}`}
+                data-testid="ws-status"
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${wsConnected ? "bg-[#4ADE80] animate-pulse" : "bg-[#A3B8AF]"}`} />
+                {wsConnected ? "Live" : "Offline"}
+              </span>
+            </div>
             <div className="flex items-center gap-3">
               {count > 0 && (
                 <button onClick={markAllRead} data-testid="mark-all-read-btn" className="text-xs font-semibold text-[#83A894] hover:text-[#A3D4B7] transition-colors">
                   Mark all read
+                </button>
+              )}
+              {notifications.length > 0 && (
+                <button onClick={clearAll} data-testid="clear-all-btn" className="text-xs font-semibold text-[#E17055] hover:text-[#F47A60] transition-colors">
+                  Clear all
                 </button>
               )}
               <button onClick={() => setOpen(false)} className="text-[#A3B8AF] hover:text-white">
