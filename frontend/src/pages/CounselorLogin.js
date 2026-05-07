@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Shield, Stethoscope, ArrowRight, Eye, EyeOff, KeyRound } from "lucide-react";
+import { Shield, Stethoscope, ArrowRight, Eye, EyeOff, KeyRound, Copy, Check, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -22,10 +22,11 @@ const SPECIALTIES = [
 
 export default function CounselorLogin() {
   const navigate = useNavigate();
-  const { setUser } = useStore();
-  const [mode, setMode] = useState("login"); // login | register
+  const { user, setUser } = useStore();
+  const [mode, setMode] = useState("login"); // login | register | credentials
   const [loading, setLoading] = useState(false);
   const [showPin, setShowPin] = useState(false);
+  const [copied, setCopied] = useState(null);
 
   // Login state
   const [loginId, setLoginId] = useState("");
@@ -76,15 +77,89 @@ export default function CounselorLogin() {
         pseudonym: res.data.pseudonym,
         token: res.data.access_token,
         role: "counselor",
+        specialty: res.data.specialty,
       });
       toast.success(`Registered as ${res.data.pseudonym}`);
-      navigate("/counselor/dashboard");
+      setMode("credentials");
     } catch (e) {
       toast.error(e.response?.data?.detail || "Registration failed");
     } finally {
       setLoading(false);
     }
   };
+
+  const copyToClipboard = (text, label) => {
+    navigator.clipboard.writeText(text);
+    setCopied(label);
+    toast.success(`${label} copied`);
+    setTimeout(() => setCopied(null), 2000);
+  };
+
+  if (mode === "credentials" && user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4" data-testid="counselor-credentials-page">
+        <div className="w-full max-w-md space-y-8 animate-fade-up">
+          <div className="text-center space-y-3">
+            <div className="w-16 h-16 rounded-2xl bg-[#4ADE80]/10 flex items-center justify-center mx-auto">
+              <Stethoscope className="w-8 h-8 text-[#4ADE80]" />
+            </div>
+            <h1 className="font-['Manrope'] text-2xl font-bold tracking-tight text-[#F0F4F2]">
+              Welcome, {user.pseudonym}
+            </h1>
+            <p className="text-sm text-[#A3B8AF] leading-relaxed">
+              Your counselor account is ready. Save your UUID below — it is your only way to log in.
+            </p>
+          </div>
+
+          <div className="rounded-2xl bg-[#14221D] border border-[#2A4036] p-5 space-y-4">
+            <div>
+              <p className="text-xs text-[#A3B8AF] uppercase tracking-[0.2em] mb-2">Pseudonym</p>
+              <div className="flex items-center justify-between">
+                <p className="font-['Manrope'] font-bold text-[#F0F4F2]" data-testid="counselor-display-pseudonym">{user.pseudonym}</p>
+                <button
+                  onClick={() => copyToClipboard(user.pseudonym, "Pseudonym")}
+                  data-testid="counselor-copy-pseudonym"
+                  className="text-[#A3B8AF] hover:text-[#6B8E7B] transition-colors"
+                >
+                  {copied === "Pseudonym" ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+            <div className="border-t border-[#2A4036]" />
+            <div>
+              <p className="text-xs text-[#A3B8AF] uppercase tracking-[0.2em] mb-2">Your UUID (use this to sign in)</p>
+              <div className="flex items-center justify-between gap-2">
+                <code className="text-xs text-[#6B8E7B] font-mono break-all" data-testid="counselor-display-uuid">{user.id}</code>
+                <button
+                  onClick={() => copyToClipboard(user.id, "UUID")}
+                  data-testid="counselor-copy-uuid"
+                  className="text-[#A3B8AF] hover:text-[#6B8E7B] transition-colors flex-shrink-0"
+                >
+                  {copied === "UUID" ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl bg-[#E17055]/5 border border-[#E17055]/20 p-4">
+            <p className="text-xs text-[#E17055] leading-relaxed">
+              <Lock className="w-3.5 h-3.5 inline mr-1.5 -mt-0.5" />
+              Save your UUID securely. You will need it to sign in. We do not store personal information and cannot recover your account.
+            </p>
+          </div>
+
+          <Button
+            onClick={() => navigate("/counselor/dashboard")}
+            data-testid="counselor-enter-dashboard"
+            className="w-full h-12 rounded-2xl bg-[#6B8E7B] hover:bg-[#83A894] text-[#0C1411] font-['Manrope'] font-bold text-sm transition-all duration-300 hover:scale-[1.02]"
+          >
+            Enter Counselor Dashboard
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4" data-testid="counselor-login-page">
@@ -129,10 +204,10 @@ export default function CounselorLogin() {
         {mode === "login" && (
           <div className="space-y-4 animate-fade-up">
             <div className="space-y-2">
-              <label className="text-xs text-[#A3B8AF] uppercase tracking-[0.2em]">Counselor UUID</label>
+              <label className="text-xs text-[#A3B8AF] uppercase tracking-[0.2em]">Your UUID (not pseudonym)</label>
               <Input
                 type="text"
-                placeholder="Paste your counselor UUID"
+                placeholder="e.g. a3b1c2d4-e5f6-7890-abcd-1234567890ef"
                 value={loginId}
                 onChange={(e) => setLoginId(e.target.value)}
                 data-testid="counselor-login-uuid"
