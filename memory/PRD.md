@@ -55,6 +55,7 @@ Build a complete, production-ready AI-Enhanced Mental Health Platform called Min
 - [x] Live/Offline status badge in panel header
 - [x] Toast popup on every incoming WS notification
 - [x] DELETE /api/admin/notifications + "Clear all" button in panel for resetting
+- [x] WebSocket realtime for counselor↔patient chat (`/api/ws/conversations/{id}?token=`) — replaces 3s polling, bidirectional broadcast on every message, dedupe of self-echo via msg id, LIVE badge in chat header
 
 ## Credentials
 - Admin: username=admin, password=mindshield_admin_2024
@@ -63,8 +64,8 @@ Build a complete, production-ready AI-Enhanced Mental Health Platform called Min
 ## Prioritized Backlog
 ### P1
 - Persist Zustand auth state across hard reload (wrap `useStore` with `zustand/middleware` `persist`) — currently F5 logs the user out
-- WebSocket for true real-time **counselor↔patient chat** (replace 3s message polling, like notifications)
 - Session summary reports for counselors
+- Exponential backoff for WS reconnect (currently fixed 3s)
 
 ### P2
 - Dark/Light theme toggle
