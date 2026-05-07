@@ -1,53 +1,63 @@
-import { useEffect } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Toaster } from "@/components/ui/sonner";
+import useStore from "@/store/useStore";
+import Onboarding from "@/pages/Onboarding";
+import Dashboard from "@/pages/Dashboard";
+import Chat from "@/pages/Chat";
+import Forum from "@/pages/Forum";
+import MoodTracker from "@/pages/MoodTracker";
+import Appointments from "@/pages/Appointments";
+import Resources from "@/pages/Resources";
+import CounselorLogin from "@/pages/CounselorLogin";
+import CounselorDashboard from "@/pages/CounselorDashboard";
+import CounselorChat from "@/pages/CounselorChat";
+import Layout from "@/components/Layout";
+import CounselorLayout from "@/components/CounselorLayout";
 import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+function ProtectedRoute({ children }) {
+  const isAuthenticated = useStore((s) => s.isAuthenticated);
+  if (!isAuthenticated) return <Navigate to="/" replace />;
+  return children;
+}
 
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
-    }
-  };
-
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
-
-  return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
-    </div>
-  );
-};
+function CounselorProtectedRoute({ children }) {
+  const isAuthenticated = useStore((s) => s.isAuthenticated);
+  const role = useStore((s) => s.user?.role);
+  if (!isAuthenticated || role !== "counselor") return <Navigate to="/counselor" replace />;
+  return children;
+}
 
 function App() {
   return (
-    <div className="App">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </div>
+    <BrowserRouter>
+      <div className="noise-overlay" />
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          style: {
+            background: '#14221D',
+            border: '1px solid #2A4036',
+            color: '#F0F4F2',
+          },
+        }}
+      />
+      <Routes>
+        <Route path="/" element={<Onboarding />} />
+        <Route path="/dashboard" element={<ProtectedRoute><Layout><Dashboard /></Layout></ProtectedRoute>} />
+        <Route path="/chat" element={<ProtectedRoute><Layout><Chat /></Layout></ProtectedRoute>} />
+        <Route path="/forum" element={<ProtectedRoute><Layout><Forum /></Layout></ProtectedRoute>} />
+        <Route path="/mood" element={<ProtectedRoute><Layout><MoodTracker /></Layout></ProtectedRoute>} />
+        <Route path="/appointments" element={<ProtectedRoute><Layout><Appointments /></Layout></ProtectedRoute>} />
+        <Route path="/appointments/chat/:conversationId" element={<ProtectedRoute><Layout><CounselorChat /></Layout></ProtectedRoute>} />
+        <Route path="/resources" element={<ProtectedRoute><Layout><Resources /></Layout></ProtectedRoute>} />
+        {/* Counselor Routes */}
+        <Route path="/counselor" element={<CounselorLogin />} />
+        <Route path="/counselor/dashboard" element={<CounselorProtectedRoute><CounselorLayout><CounselorDashboard /></CounselorLayout></CounselorProtectedRoute>} />
+        <Route path="/counselor/conversations" element={<CounselorProtectedRoute><CounselorLayout><CounselorDashboard /></CounselorLayout></CounselorProtectedRoute>} />
+        <Route path="/counselor/chat/:conversationId" element={<CounselorProtectedRoute><CounselorLayout><CounselorChat /></CounselorLayout></CounselorProtectedRoute>} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

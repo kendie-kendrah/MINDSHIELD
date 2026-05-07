@@ -1,34 +1,72 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+/* MindShield Custom Styles */
+
+/* State indicator dots */
+.state-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.state-dot.normal { background-color: #4ADE80; }
+.state-dot.mild { background-color: #FCD34D; }
+.state-dot.crisis { background-color: #E17055; }
+
+/* Chat message transitions */
+.message-enter {
+  opacity: 0;
+  transform: translateY(8px);
+}
+.message-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms ease-out, transform 300ms ease-out;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+/* Card hover lift */
+.card-lift {
+  transition: transform 300ms ease-out, border-color 300ms ease-out;
+}
+.card-lift:hover {
+  transform: translateY(-2px);
+  border-color: rgba(107, 142, 123, 0.4);
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+/* Mood slider custom */
+.mood-slider [data-orientation="horizontal"] {
+  height: 6px;
 }
 
-.App-link {
-    color: #61dafb;
+/* Sidebar active link */
+.nav-link-active {
+  background: rgba(107, 142, 123, 0.15);
+  border-left: 2px solid #6B8E7B;
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+/* Crisis alert pulse */
+.crisis-pulse {
+  animation: crisis-glow 2s ease-in-out infinite;
+}
+@keyframes crisis-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(225, 112, 85, 0.2); }
+  50% { box-shadow: 0 0 20px 4px rgba(225, 112, 85, 0.1); }
+}
+
+/* Protected badge shimmer */
+.badge-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.badge-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+  animation: shimmer 3s infinite;
+}
+@keyframes shimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
 }
