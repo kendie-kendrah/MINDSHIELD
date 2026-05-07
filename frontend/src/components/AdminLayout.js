@@ -2,6 +2,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { BarChart3, Users, ShieldCheck, LogOut, Menu } from "lucide-react";
 import { useState } from "react";
 import useStore from "@/store/useStore";
+import AdminNotificationBell from "@/components/AdminNotificationBell";
 
 const NAV_ITEMS = [
   { path: "/admin/dashboard", label: "Analytics", icon: BarChart3 },
@@ -49,10 +50,14 @@ export default function AdminLayout({ children }) {
         </div>
       </aside>
       <main className="flex-1 flex flex-col overflow-hidden">
-        <header className="lg:hidden flex items-center justify-between p-4 glass-strong">
-          <button onClick={() => setSidebarOpen(true)} data-testid="admin-mobile-menu" className="text-[#A3B8AF]"><Menu className="w-6 h-6" /></button>
-          <div className="flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-[#E17055]" /><span className="font-['Manrope'] font-bold text-sm">Admin</span></div>
-          <div />
+        <header className="flex items-center justify-between p-4 lg:px-8 lg:py-4 glass-strong">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setSidebarOpen(true)} data-testid="admin-mobile-menu" className="lg:hidden text-[#A3B8AF]"><Menu className="w-6 h-6" /></button>
+            <div className="lg:hidden flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-[#E17055]" /><span className="font-['Manrope'] font-bold text-sm">Admin</span></div>
+          </div>
+          <div className="flex items-center gap-2">
+            <AdminNotificationBell />
+          </div>
         </header>
         <div className="flex-1 overflow-y-auto"><div className="max-w-7xl mx-auto p-6 lg:p-8">{children}</div></div>
       </main>

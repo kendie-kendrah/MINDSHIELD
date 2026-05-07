@@ -98,6 +98,14 @@ export default function AdminModeration() {
                     <span className="text-[10px] text-[#A3B8AF] flex items-center gap-1"><Clock className="w-3 h-3" />{timeAgo(post.created_at)}</span>
                   </div>
                   <p className="text-sm text-[#F0F4F2] leading-relaxed">{post.body}</p>
+                  {post.is_flagged && post.flag_reason && (
+                    <div className="mt-3 rounded-lg bg-[#E17055]/10 border border-[#E17055]/20 px-3 py-2" data-testid={`flag-reason-${post.id}`}>
+                      <p className="text-[10px] text-[#E17055] uppercase tracking-wider font-semibold mb-1 flex items-center gap-1">
+                        <AlertTriangle className="w-3 h-3" /> AI Flag Reason
+                      </p>
+                      <p className="text-xs text-[#F0F4F2]/90 leading-relaxed">{post.flag_reason}</p>
+                    </div>
+                  )}
                   {post.replies?.length > 0 && (
                     <p className="text-xs text-[#A3B8AF] mt-2">{post.replies.length} {post.replies.length === 1 ? "reply" : "replies"}</p>
                   )}

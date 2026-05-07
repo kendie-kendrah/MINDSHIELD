@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, Header, Query
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, Header, Query, BackgroundTasks
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -158,6 +158,15 @@ class UpdateBookingStatusRequest(BaseModel):
 
 class ConversationMessageRequest(BaseModel):
     body: str
+
+class ConnectToCounselorRequest(BaseModel):
+    user_id: str
+    counselor_id: Optional[str] = None
+
+class UpdateAvailabilityRequest(BaseModel):
+    available_slots: List[str]
+    bio: Optional[str] = None
+    specialty: Optional[str] = None
 
 @api_router.get("/")
 async def health_check():
@@ -460,6 +469,14 @@ async def send_message(body: SendMessageRequest, user=Depends(get_current_user))
             'message_id': user_msg_doc['id'],
             'created_at': datetime.now(timezone.utc).isoformat()
         })
+        await create_admin_notification(
+            'CRISIS',
+            'Crisis Detected',
+            f"User {user.get('pseudonym', 'Anonymous')} sent a message classified as CRISIS in AI chat.",
+            user_id=user['id'],
+            user_pseudonym=user.get('pseudonym'),
+            metadata={'session_id': session_id, 'message_id': user_msg_doc['id'], 'preview': body.message[:160]}
+        )
 
     return {
         'user_message': {
@@ -499,7 +516,7 @@ async def get_forum_posts(topic: Optional[str] = None):
     return {'posts': posts}
 
 @api_router.post("/forum/posts")
-async def create_forum_post(body: CreatePostRequest, user=Depends(get_current_user)):
+async def create_forum_post(body: CreatePostRequest, background_tasks: BackgroundTasks, user=Depends(get_current_user)):
     post_doc = {
         'id': str(uuid.uuid4()),
         'author_id': user['id'],
@@ -512,6 +529,8 @@ async def create_forum_post(body: CreatePostRequest, user=Depends(get_current_us
     }
     await db.forum_posts.insert_one(post_doc)
     del post_doc['_id']
+    # Run AI moderation in the background so the response stays fast
+    background_tasks.add_task(moderate_forum_content, post_doc['id'], body.body, user['pseudonym'])
     return post_doc
 
 @api_router.post("/forum/posts/{post_id}/reply")
@@ -747,6 +766,22 @@ async def send_patient_message(conversation_id: str, body: ConversationMessageRe
         {'id': conversation_id},
         {'$set': {'last_message_at': msg_doc['created_at']}}
     )
+    if emotional_state == 'CRISIS':
+        await db.crisis_alerts.insert_one({
+            'id': str(uuid.uuid4()),
+            'user_id': user['id'],
+            'session_id': conversation_id,
+            'message_id': msg_doc['id'],
+            'created_at': datetime.now(timezone.utc).isoformat()
+        })
+        await create_admin_notification(
+            'CRISIS',
+            'Crisis Detected (Counselor Chat)',
+            f"User {user.get('pseudonym', 'Anonymous')} sent a CRISIS message in counselor conversation.",
+            user_id=user['id'],
+            user_pseudonym=user.get('pseudonym'),
+            metadata={'conversation_id': conversation_id, 'message_id': msg_doc['id'], 'preview': body.body[:160]}
+        )
     del msg_doc['_id']
     return msg_doc
 
@@ -915,6 +950,112 @@ async def list_crisis_alerts(admin=Depends(get_current_admin)):
         a['user_pseudonym'] = u['pseudonym'] if u else 'Unknown'
     return {'alerts': alerts}
 
+# ========== ADMIN NOTIFICATIONS ==========
+
+@api_router.get("/admin/notifications")
+async def list_notifications(admin=Depends(get_current_admin), limit: int = Query(default=50)):
+    notifications = await db.admin_notifications.find({}, {'_id': 0}).sort('created_at', -1).to_list(limit)
+    return {'notifications': notifications}
+
+@api_router.get("/admin/notifications/count")
+async def count_unread_notifications(admin=Depends(get_current_admin)):
+    count = await db.admin_notifications.count_documents({'read': False})
+    return {'count': count}
+
+@api_router.put("/admin/notifications/{notification_id}/read")
+async def mark_notification_read(notification_id: str, admin=Depends(get_current_admin)):
+    result = await db.admin_notifications.update_one(
+        {'id': notification_id},
+        {'$set': {'read': True, 'read_at': datetime.now(timezone.utc).isoformat()}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail='Notification not found')
+    return {'read': True, 'notification_id': notification_id}
+
+@api_router.put("/admin/notifications/read-all")
+async def mark_all_notifications_read(admin=Depends(get_current_admin)):
+    result = await db.admin_notifications.update_many(
+        {'read': False},
+        {'$set': {'read': True, 'read_at': datetime.now(timezone.utc).isoformat()}}
+    )
+    return {'modified': result.modified_count}
+
+@api_router.post("/admin/connect-to-counselor")
+async def admin_connect_user_to_counselor(body: ConnectToCounselorRequest, admin=Depends(get_current_admin)):
+    user_doc = await db.users.find_one({'id': body.user_id}, {'_id': 0})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail='User not found')
+
+    # Resolve counselor: explicit choice or auto-pick the one with the fewest active conversations
+    if body.counselor_id:
+        counselor = await db.counselors.find_one({'id': body.counselor_id}, {'_id': 0})
+        if not counselor:
+            raise HTTPException(status_code=404, detail='Counselor not found')
+    else:
+        all_counselors = await db.counselors.find({}, {'_id': 0}).to_list(100)
+        if not all_counselors:
+            raise HTTPException(status_code=400, detail='No counselors available')
+        counselor_loads = []
+        for c in all_counselors:
+            load = await db.conversations.count_documents({'counselor_id': c['id']})
+            counselor_loads.append((load, c))
+        counselor_loads.sort(key=lambda x: x[0])
+        counselor = counselor_loads[0][1]
+
+    # Reuse an existing conversation if there is one
+    existing = await db.conversations.find_one(
+        {'patient_id': body.user_id, 'counselor_id': counselor['id']}, {'_id': 0}
+    )
+    if existing:
+        return {
+            'already_exists': True,
+            'conversation_id': existing['id'],
+            'counselor_id': counselor['id'],
+            'counselor_pseudonym': counselor['pseudonym'],
+            'counselor_specialty': counselor.get('specialty', '')
+        }
+
+    conv_doc = {
+        'id': str(uuid.uuid4()),
+        'patient_id': body.user_id,
+        'counselor_id': counselor['id'],
+        'patient_pseudonym': user_doc['pseudonym'],
+        'counselor_pseudonym': counselor['pseudonym'],
+        'appointment_id': None,
+        'created_by': 'admin',
+        'created_at': datetime.now(timezone.utc).isoformat(),
+        'last_message_at': datetime.now(timezone.utc).isoformat()
+    }
+    await db.conversations.insert_one(conv_doc)
+    return {
+        'already_exists': False,
+        'conversation_id': conv_doc['id'],
+        'counselor_id': counselor['id'],
+        'counselor_pseudonym': counselor['pseudonym'],
+        'counselor_specialty': counselor.get('specialty', '')
+    }
+
+# ========== COUNSELOR PROFILE & AVAILABILITY ==========
+
+@api_router.get("/counselor/profile")
+async def get_counselor_profile(counselor=Depends(get_current_counselor)):
+    profile = await db.counselors.find_one({'id': counselor['id']}, {'_id': 0, 'pin_hash': 0})
+    if not profile:
+        raise HTTPException(status_code=404, detail='Counselor profile not found')
+    return profile
+
+@api_router.put("/counselor/availability")
+async def update_counselor_availability(body: UpdateAvailabilityRequest, counselor=Depends(get_current_counselor)):
+    update = {'available_slots': body.available_slots}
+    if body.bio is not None:
+        update['bio'] = body.bio
+    if body.specialty is not None and body.specialty.strip():
+        update['specialty'] = body.specialty.strip()
+    update['updated_at'] = datetime.now(timezone.utc).isoformat()
+    await db.counselors.update_one({'id': counselor['id']}, {'$set': update})
+    profile = await db.counselors.find_one({'id': counselor['id']}, {'_id': 0, 'pin_hash': 0})
+    return profile
+
 # ========== SEED DATA ==========
 
 async def seed_resources():
@@ -1024,6 +1165,8 @@ async def startup_event():
     await db.invite_codes.create_index('code', unique=True)
     await db.invite_codes.create_index('used')
     await db.crisis_alerts.create_index('created_at')
+    await db.admin_notifications.create_index('created_at')
+    await db.admin_notifications.create_index('read')
     await seed_resources()
     await seed_counselors()
     logger.info("MindShield API started - indexes and seed data ready")

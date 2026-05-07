@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Calendar, Check, X as XIcon, MessageCircle, Clock, User, AlertTriangle } from "lucide-react";
+import { Calendar, Check, X as XIcon, MessageCircle, Clock, User, AlertTriangle, Plus, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import useStore from "@/store/useStore";
@@ -22,6 +23,10 @@ export default function CounselorDashboard() {
   const [conversations, setConversations] = useState([]);
   const [filter, setFilter] = useState("all");
   const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState(null);
+  const [slots, setSlots] = useState([]);
+  const [newSlot, setNewSlot] = useState("");
+  const [savingAvailability, setSavingAvailability] = useState(false);
 
   const authHeaders = { Authorization: `Bearer ${user?.token}` };
 
@@ -30,16 +35,52 @@ export default function CounselorDashboard() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [bookRes, convRes] = await Promise.all([
+      const [bookRes, convRes, profRes] = await Promise.all([
         axios.get(`${API}/counselor/bookings`, { headers: authHeaders }),
         axios.get(`${API}/counselor/conversations`, { headers: authHeaders }),
+        axios.get(`${API}/counselor/profile`, { headers: authHeaders }),
       ]);
       setBookings(bookRes.data.bookings || []);
       setConversations(convRes.data.conversations || []);
+      setProfile(profRes.data);
+      setSlots(profRes.data?.available_slots || []);
     } catch (e) {
       toast.error("Failed to load data");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const addSlot = () => {
+    const trimmed = newSlot.trim();
+    if (!trimmed) return;
+    if (slots.includes(trimmed)) {
+      toast.error("Slot already exists");
+      return;
+    }
+    setSlots([...slots, trimmed]);
+    setNewSlot("");
+  };
+
+  const removeSlot = (slot) => {
+    setSlots(slots.filter((s) => s !== slot));
+  };
+
+  const saveAvailability = async () => {
+    setSavingAvailability(true);
+    try {
+      const res = await axios.put(
+        `${API}/counselor/availability`,
+        { available_slots: slots },
+        { headers: authHeaders }
+      );
+      setProfile(res.data);
+      setSlots(res.data.available_slots || []);
+      toast.success("Availability updated");
+    } catch (e) {
+      toast.error("Failed to update availability");
+    } finally {
+      setSavingAvailability(false);
     }
   };
 
@@ -86,6 +127,71 @@ export default function CounselorDashboard() {
             <p className="text-2xl font-['Manrope'] font-bold mt-1" style={{ color: stat.color }}>{stat.value}</p>
           </div>
         ))}
+      </div>
+
+      {/* Availability Editor */}
+      <div className="rounded-2xl bg-[#14221D] border border-[#2A4036] p-6 animate-fade-up" data-testid="availability-editor">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+          <div>
+            <h2 className="font-['Manrope'] font-bold text-[#F0F4F2] text-lg flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-[#6B8E7B]" /> My Availability
+            </h2>
+            <p className="text-xs text-[#A3B8AF] mt-1">
+              {profile?.specialty ? `${profile.specialty} · ` : ""}Patients will only be able to book the slots listed below.
+            </p>
+          </div>
+          <Button
+            onClick={saveAvailability}
+            disabled={savingAvailability}
+            data-testid="save-availability-btn"
+            className="h-9 rounded-xl bg-[#6B8E7B]/20 hover:bg-[#6B8E7B]/30 text-[#6B8E7B] text-xs px-4"
+          >
+            <Save className="w-3.5 h-3.5 mr-1.5" />
+            {savingAvailability ? "Saving..." : "Save changes"}
+          </Button>
+        </div>
+
+        <div className="flex items-center gap-2 mb-4">
+          <Input
+            value={newSlot}
+            onChange={(e) => setNewSlot(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addSlot(); } }}
+            placeholder="e.g. Mon 10:00"
+            data-testid="new-slot-input"
+            className="flex-1 bg-[#0E1816] border-[#2A4036] text-sm text-[#F0F4F2] placeholder:text-[#A3B8AF]/60 focus-visible:ring-[#6B8E7B]"
+          />
+          <Button
+            onClick={addSlot}
+            data-testid="add-slot-btn"
+            className="h-10 rounded-xl bg-[#6B8E7B]/20 hover:bg-[#6B8E7B]/30 text-[#6B8E7B] text-xs px-4"
+          >
+            <Plus className="w-4 h-4 mr-1" /> Add slot
+          </Button>
+        </div>
+
+        {slots.length === 0 ? (
+          <p className="text-xs text-[#A3B8AF] italic" data-testid="no-slots">No availability set. Patients won't be able to book until you add slots.</p>
+        ) : (
+          <div className="flex flex-wrap gap-2" data-testid="slot-list">
+            {slots.map((slot) => (
+              <div
+                key={slot}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#6B8E7B]/15 border border-[#6B8E7B]/30 text-xs text-[#F0F4F2]"
+                data-testid={`slot-${slot.replace(/\s+/g, '-')}`}
+              >
+                <Clock className="w-3 h-3 text-[#6B8E7B]" />
+                <span>{slot}</span>
+                <button
+                  onClick={() => removeSlot(slot)}
+                  data-testid={`remove-slot-${slot.replace(/\s+/g, '-')}`}
+                  className="text-[#A3B8AF] hover:text-[#E17055] transition-colors"
+                >
+                  <XIcon className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Active Conversations */}
