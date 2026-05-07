@@ -7,53 +7,53 @@ Build a complete, production-ready AI-Enhanced Mental Health Platform called Min
 - **Frontend**: React 18 + Tailwind CSS + Shadcn/UI + Zustand (in-memory state)
 - **Backend**: FastAPI (Python) + MongoDB
 - **AI**: Anthropic Claude (via emergentintegrations) for crisis detection
-- **Auth**: UUID-based anonymous sessions + JWT
+- **Auth**: UUID-based anonymous sessions + JWT (role-based: user/counselor/admin)
 - **Design**: "Deep Forest Glow" dark theme (Manrope + Figtree fonts)
 
 ## User Personas
 1. **Students/Young Adults**: Anonymous mental health support seekers in Nigeria/West Africa
-2. **Counselors**: Professional therapists managing bookings and real-time patient chat
+2. **Counselors**: Professional therapists with invite-based registration, booking management, real-time patient chat
+3. **Admin**: Platform administrator with analytics, user/counselor management, content moderation
 
-## Core Requirements (Static)
-- Anonymous UUID-based authentication (no email, no phone)
-- AI-powered chat with crisis detection (NORMAL/MILD_DISTRESS/CRISIS)
-- Nigerian crisis helplines integration
-- Community forums (anonymous peer support)
-- Mood tracking with 30-day trend charts + AI insights
-- Appointment booking system
-- Mental health resources library (CBT, Coping, Crisis, Psychoeducation)
-- Counselor portal with separate auth, booking management, real-time patient chat
-
-## What's Been Implemented (2026-03-24)
-- [x] Full backend API (18+ endpoints) with MongoDB
+## What's Been Implemented
+### Phase 1 (2026-03-24) - Core Platform
 - [x] Anonymous UUID auth (register + login)
-- [x] AI Chat with Claude integration (NORMAL/MILD_DISTRESS/CRISIS detection)
-- [x] Crisis Alert system with Nigerian helplines
-- [x] Community Forum with topic boards + replies
+- [x] AI Chat with Claude (NORMAL/MILD_DISTRESS/CRISIS detection)
+- [x] Crisis Alert with Nigerian helplines
+- [x] Community Forum with topic boards
 - [x] Mood Tracker with Recharts charts + AI insights
-- [x] Appointment booking system with 4 pre-seeded counselors
-- [x] Resources library (8 articles: CBT, Coping, Crisis, Psychoeducation)
-- [x] Counselor Portal (2026-03-24): Registration with access code, booking management, real-time patient chat, emotional state badges
-- [x] Patient-Counselor conversation system (auto-created on booking confirmation)
+- [x] Appointment booking with counselors
+- [x] Resources library (8 articles)
+
+### Phase 2 (2026-03-24) - Counselor Portal
+- [x] Separate counselor auth with access code
+- [x] Booking management (view/confirm/cancel)
+- [x] Real-time counselor-patient chat (3s polling)
+- [x] Emotional state badges on patient messages
+- [x] UUID credentials display on registration
+
+### Phase 3 (2026-05-07) - Admin Panel
+- [x] Admin login with hardcoded credentials
+- [x] Platform analytics dashboard (12 stats + 3 recent activity metrics)
+- [x] User management (list/remove with full data cleanup)
+- [x] Counselor management (list/remove)
+- [x] One-time invite code system for counselor registration
+- [x] Content moderation (flag/unflag/delete forum posts)
+- [x] Crisis alerts log with user pseudonyms
+
+## Credentials
+- Admin: username=admin, password=mindshield_admin_2024
+- Counselor Access Code: MINDSHIELD-COUNSELOR (fallback) or admin-generated invite codes
 
 ## Prioritized Backlog
-### P0 (Critical)
-- All core features implemented
-
-### P1 (Important)
-- WebSocket for true real-time chat (currently polling every 3s)
-- Data export for user mood history
-- Counselor availability management
-
-### P2 (Nice to have)
-- Dark/Light theme toggle
-- Multi-language support (Yoruba, Igbo, Hausa)
-- Push notifications for new messages
-- AI-moderated forum content flagging
+### P1
+- WebSocket for true real-time chat
+- Counselor availability/scheduling management
 - Session summary reports for counselors
 
-## Next Tasks
-1. Enhance real-time with WebSockets
-2. Add counselor scheduling/availability management
-3. Add forum content moderation
-4. Add accessibility improvements
+### P2
+- Dark/Light theme toggle
+- Multi-language (Yoruba, Igbo, Hausa)
+- AI-moderated forum content auto-flagging
+- Data export for mood history
+- Push notifications
