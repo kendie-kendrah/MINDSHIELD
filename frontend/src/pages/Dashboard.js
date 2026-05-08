@@ -97,14 +97,15 @@ export default function Dashboard() {
           <p className="text-xs text-[#A3B8AF] mb-6">Tap an emoji to log a quick mood</p>
 
           <div className="flex justify-between gap-2 mb-6" data-testid="mood-emoji-row">
-            {MOOD_OPTIONS.map((m) => {
+            {MOOD_OPTIONS.map((m, i) => {
               const active = moodChoice?.score === m.score;
               return (
                 <button
                   key={m.score}
                   onClick={() => setMoodChoice(m)}
                   data-testid={`mood-emoji-${m.score}`}
-                  className={`flex-1 flex flex-col items-center gap-1.5 py-3 rounded-2xl transition-all duration-300 ${active ? "bg-[#6B8E7B]/20 ring-2 ring-[#6B8E7B] scale-105" : "bg-white/[0.02] hover:bg-white/[0.05] hover:scale-105"}`}
+                  style={{ animationDelay: `${i * 90}ms` }}
+                  className={`flex-1 flex flex-col items-center gap-1.5 py-3 rounded-2xl animate-pop-in transition-all duration-300 ${active ? "bg-[#6B8E7B]/20 ring-2 ring-[#6B8E7B] scale-105" : "bg-white/[0.02] hover:bg-white/[0.05] hover:scale-105"}`}
                 >
                   <span className="text-3xl" aria-hidden>{m.emoji}</span>
                   <span className={`text-[10px] font-medium ${active ? "text-[#6B8E7B]" : "text-[#A3B8AF]"}`}>{m.label}</span>

@@ -1306,7 +1306,7 @@ async def startup_event():
     await db.admin_notifications.create_index('created_at')
     await db.admin_notifications.create_index('read')
     await seed_resources()
-    await seed_counselors()
+    # Counselors are NOT auto-seeded — admins onboard them manually via invite codes.
     logger.info("MindShield API started - indexes and seed data ready")
 
 # ========== MOOD INSIGHTS ==========

@@ -65,8 +65,14 @@ Build a complete, production-ready AI-Enhanced Mental Health Platform called Min
 - [x] MoodTracker: giant animated emoji + score in Fraunces on the log form
 - [x] Chat: 2x2 emoji prompt grid (🌪️🗣️🌱👋) with warmer welcome state ("Hi there.")
 - [x] Forum: emoji topic pills (✨🌪️🌧️💞💬), warmer empty states (💛 "It's quiet here.")
-- [x] Appointments: large emoji counselor avatars; friendly status badges (⏳ Awaiting / ✅ Confirmed / ❌ Cancelled / 🌿 Completed)
+- [x] Appointments: large emoji counselor avatars; friendly status badges
 - [x] Renamed "patient" → "user" in user-facing copy across counselor portal & dashboard
+
+### Phase 7 (2026-05-08) - Demo Polish
+- [x] Disabled `seed_counselors()` from running on startup — admins must onboard manually via invites
+- [x] Cleaned DB to demo-friendly counts: 5 curated counselors (Dr. Serenity, Dr. Harmony, Dr. Compass, Dr. Resilience, Dr. Beacon) + 10 users + 0 invite codes + 0 stale alerts
+- [x] New onboarding tagline: "Whatever you're going through, you don't have to face it alone — and no one ever needs to know your name."
+- [x] Added bounce-in entrance animation (`@keyframes popIn` cubic-bezier(0.34,1.56,0.64,1)) staggered 90ms across the 5 mood emoji buttons
 
 ## Credentials
 - Admin: username=admin, password=mindshield_admin_2024

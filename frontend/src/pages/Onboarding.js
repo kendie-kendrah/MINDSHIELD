@@ -148,7 +148,7 @@ export default function Onboarding() {
               MindShield
             </h1>
             <p className="mt-3 text-base text-[#A3B8AF] leading-relaxed max-w-xs mx-auto">
-              A calm, anonymous space to talk, track your mood, and feel a little better.
+              Whatever you're going through, you don't have to face it alone — and no one ever needs to know your name.
             </p>
           </div>
         </div>
