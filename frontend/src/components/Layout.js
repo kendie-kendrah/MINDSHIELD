@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { LayoutDashboard, MessageCircle, Users, Activity, Calendar, BookOpen, LogOut, Shield, Menu, X } from "lucide-react";
+import { LayoutDashboard, MessageCircle, Users, Activity, Calendar, BookOpen, LogOut, ShieldCheck, Menu, X } from "lucide-react";
 import { useState } from "react";
 import useStore from "@/store/useStore";
 import AnonymousBadge from "@/components/AnonymousBadge";
@@ -43,7 +43,7 @@ export default function Layout({ children }) {
       >
         <div className="p-6 flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-[#6B8E7B]/20 flex items-center justify-center">
-            <Shield className="w-5 h-5 text-[#6B8E7B]" />
+            <ShieldCheck className="w-5 h-5 text-[#6B8E7B]" />
           </div>
           <span className="font-['Fraunces'] font-bold text-lg tracking-tight text-[#F0F4F2]">MindShield</span>
         </div>
@@ -93,7 +93,7 @@ export default function Layout({ children }) {
             <Menu className="w-6 h-6" />
           </button>
           <div className="flex items-center gap-2">
-            <Shield className="w-5 h-5 text-[#6B8E7B]" />
+            <ShieldCheck className="w-5 h-5 text-[#6B8E7B]" />
             <span className="font-['Fraunces'] font-bold">MindShield</span>
           </div>
           <AnonymousBadge compact />

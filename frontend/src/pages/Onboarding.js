@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Shield, Copy, Check, Lock, ArrowRight, Eye, EyeOff } from "lucide-react";
+import { Shield, ShieldCheck, Copy, Check, Lock, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -141,14 +141,14 @@ export default function Onboarding() {
         {/* Logo & Title */}
         <div className="text-center space-y-4">
           <div className="w-20 h-20 rounded-3xl bg-[#6B8E7B]/10 border border-[#6B8E7B]/20 flex items-center justify-center mx-auto">
-            <Shield className="w-10 h-10 text-[#6B8E7B]" />
+            <ShieldCheck className="w-10 h-10 text-[#6B8E7B]" />
           </div>
           <div>
             <h1 className="font-['Fraunces'] text-4xl sm:text-5xl font-semibold tracking-tight text-[#F0F4F2]">
               MindShield
             </h1>
             <p className="mt-3 text-base text-[#A3B8AF] leading-relaxed max-w-xs mx-auto">
-              Whatever you're going through, you don't have to face it alone — and no one ever needs to know your name.
+              Speak freely, heal confidently, and stay completely anonymous every step of the way.
             </p>
           </div>
         </div>

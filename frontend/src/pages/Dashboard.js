@@ -9,7 +9,6 @@ import axios from "axios";
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const QUICK_LINKS = [
-  { path: "/chat", label: "AI Chat", emoji: "💬", desc: "Talk with MindShield AI" },
   { path: "/mood", label: "Mood Tracker", emoji: "📈", desc: "Log how you feel today" },
   { path: "/forum", label: "Community", emoji: "🤝", desc: "Anonymous peer support" },
   { path: "/appointments", label: "Appointments", emoji: "📅", desc: "Book a session" },

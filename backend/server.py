@@ -37,22 +37,20 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 logger = logging.getLogger(__name__)
 
 # --- Pseudonym Generator ---
-ADJECTIVES = [
-    'Calm', 'Brave', 'Gentle', 'Wise', 'Kind', 'Serene', 'Bold', 'Quiet',
-    'Warm', 'Swift', 'Noble', 'Bright', 'Steady', 'Free', 'True', 'Pure',
-    'Strong', 'Soft', 'Fair', 'Deep', 'Wild', 'Safe', 'Light', 'Cool'
-]
-NOUNS = [
-    'Phoenix', 'River', 'Mountain', 'Star', 'Ocean', 'Forest', 'Falcon',
-    'Lotus', 'Eagle', 'Wolf', 'Breeze', 'Dawn', 'Storm', 'Sage', 'Haven',
-    'Coral', 'Ember', 'Frost', 'Grove', 'Hawk', 'Isle', 'Lake', 'Moon', 'Peak'
+PLACES = [
+    'Tokyo', 'Lagos', 'Cairo', 'Reykjavik', 'Lisbon', 'Marrakech', 'Kyoto', 'Havana',
+    'Nairobi', 'Oslo', 'Casablanca', 'Vienna', 'Bali', 'Mumbai', 'Athens', 'Seoul',
+    'Quito', 'Helsinki', 'Cusco', 'Hanoi', 'Florence', 'Dakar', 'Prague', 'Bogota',
+    'Warsaw', 'Accra', 'Riga', 'Manila', 'Zurich', 'Tbilisi', 'Beirut', 'Almaty',
+    'Bergen', 'Porto', 'Santorini', 'Antigua', 'Belgrade', 'Sofia', 'Tunis', 'Yerevan',
+    'Edinburgh', 'Galway', 'Sevilla', 'Bruges', 'Hoi An', 'Salzburg', 'Marseille',
+    'Kigali', 'Tashkent', 'Cartagena', 'Maputo', 'Asmara'
 ]
 
 def generate_pseudonym():
-    adj = random.choice(ADJECTIVES)
-    noun = random.choice(NOUNS)
-    num = random.randint(1000, 9999)
-    return f"{adj}{noun}{num}"
+    place = random.choice(PLACES)
+    num = random.randint(100, 999)
+    return f"{place}{num}"
 
 # --- JWT Helpers ---
 def create_token(user_id: str, role: str = "user") -> str:
@@ -236,7 +234,12 @@ async def login(body: LoginRequest):
 
 # ========== COUNSELOR AUTH ROUTES ==========
 
-COUNSELOR_NAMES = ['Serenity', 'Harmony', 'Compass', 'Resilience', 'Clarity', 'Courage', 'Haven', 'Grace', 'Solace', 'Beacon']
+COUNSELOR_NAMES = [
+    'Sapphire', 'Emerald', 'Ruby', 'Diamond', 'Topaz', 'Opal', 'Amethyst', 'Pearl',
+    'Jade', 'Onyx', 'Garnet', 'Citrine', 'Aquamarine', 'Peridot', 'Turquoise',
+    'Tanzanite', 'Tourmaline', 'Moonstone', 'Lapis', 'Coral', 'Amber', 'Obsidian',
+    'Quartz', 'Beryl', 'Spinel', 'Zircon'
+]
 
 @api_router.post("/auth/counselor/register")
 async def counselor_register(body: CounselorRegisterRequest):
