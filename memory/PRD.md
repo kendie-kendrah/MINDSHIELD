@@ -57,6 +57,17 @@ Build a complete, production-ready AI-Enhanced Mental Health Platform called Min
 - [x] DELETE /api/admin/notifications + "Clear all" button in panel for resetting
 - [x] WebSocket realtime for counselor↔patient chat (`/api/ws/conversations/{id}?token=`) — replaces 3s polling, bidirectional broadcast on every message, dedupe of self-echo via msg id, LIVE badge in chat header
 
+### Phase 6 (2026-05-08) - Design Refresh
+- [x] Removed all Emergent watermarks from `index.html` (badge, scripts, PostHog, title, meta)
+- [x] Typography: Fraunces (warm serif) for headers + Inter (geometric sans) for body
+- [x] Onboarding: 4 emoji feature pills (🛡️🔒💬🌱), simpler copy, breathing room
+- [x] Dashboard: emoji mood picker (😢😟😐😌😃) replaces slider; emoji quick-link cards
+- [x] MoodTracker: giant animated emoji + score in Fraunces on the log form
+- [x] Chat: 2x2 emoji prompt grid (🌪️🗣️🌱👋) with warmer welcome state ("Hi there.")
+- [x] Forum: emoji topic pills (✨🌪️🌧️💞💬), warmer empty states (💛 "It's quiet here.")
+- [x] Appointments: large emoji counselor avatars; friendly status badges (⏳ Awaiting / ✅ Confirmed / ❌ Cancelled / 🌿 Completed)
+- [x] Renamed "patient" → "user" in user-facing copy across counselor portal & dashboard
+
 ## Credentials
 - Admin: username=admin, password=mindshield_admin_2024
 - Counselor Access Code: MINDSHIELD-COUNSELOR (fallback) or admin-generated invite codes
@@ -64,6 +75,7 @@ Build a complete, production-ready AI-Enhanced Mental Health Platform called Min
 ## Prioritized Backlog
 ### P1
 - Persist Zustand auth state across hard reload (wrap `useStore` with `zustand/middleware` `persist`) — currently F5 logs the user out
+- Make MoodTracker slider keyboard accessible (ArrowLeft/Right, Home/End) — WCAG 2.1.1
 - Session summary reports for counselors
 - Exponential backoff for WS reconnect (currently fixed 3s)
 
