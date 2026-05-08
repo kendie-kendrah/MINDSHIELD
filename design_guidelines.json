@@ -1,110 +1,171 @@
 {
-  "app_name": "MindShield",
-  "theme": "dark",
-  "typography": {
-    "headers": "Manrope",
-    "body": "Figtree",
-    "weights": {
-      "light": "font-light",
-      "regular": "font-normal",
-      "medium": "font-medium",
-      "bold": "font-bold"
-    },
-    "rules": [
-      "CRITICAL: Do NOT use Inter, Roboto, or Open Sans.",
-      "Headings (>32px) MUST use tracking-tight or tracking-tighter.",
-      "Body text MUST use leading-relaxed for comfortable reading.",
-      "Overlines/Labels MUST be Uppercase, Tiny (text-xs), and Wide Spacing (tracking-[0.2em])."
+  "theme": "Light",
+  "archetype": "1_Organic_And_Earthy",
+  "domain": "Mental Health",
+  "target_audience": "Nigerian/West African students and young adults",
+  "core_aesthetic": {
+    "vibe": "Warm, Calming, Safe, Approachable",
+    "key_elements": [
+      "Glass cards (Crystal Glass variant)",
+      "Generous whitespace (Tailwind p-8 to p-12)",
+      "Emoji-driven UI for low cognitive load",
+      "Soft teal/green primary with warm peach/cream neutrals",
+      "No sharp corners (rounded-2xl or rounded-3xl)"
     ]
   },
-  "colors": {
-    "palette_name": "Deep Forest Glow (Organic & Earthy Dark)",
-    "background": "#0C1411",
-    "surface": "#14221D",
-    "surface_hover": "#1C2F28",
-    "surface_glass": "rgba(255, 255, 255, 0.03)",
-    "border": "#2A4036",
-    "primary": "#6B8E7B",
-    "primary_hover": "#83A894",
-    "primary_foreground": "#0C1411",
-    "text_primary": "#F0F4F2",
-    "text_secondary": "#A3B8AF",
-    "semantic": {
-      "normal": "#4ADE80",
-      "mild_distress": "#FCD34D",
-      "crisis": "#E17055",
-      "crisis_background": "rgba(225, 112, 85, 0.1)"
+  "typography": {
+    "strategy": "Old Money Tech / Editorial Future twist for warmth",
+    "headings": {
+      "family": "Fraunces, serif",
+      "weights": ["400", "600", "800"],
+      "classes": "font-serif tracking-tight text-foreground",
+      "usage": {
+        "h1": "text-4xl sm:text-5xl lg:text-6xl font-serif",
+        "h2": "text-2xl sm:text-3xl lg:text-4xl font-serif",
+        "h3": "text-xl sm:text-2xl font-serif"
+      }
+    },
+    "body": {
+      "family": "Inter, sans-serif",
+      "weights": ["400", "500", "600"],
+      "classes": "font-sans leading-relaxed text-foreground/80",
+      "usage": {
+        "p": "text-base sm:text-lg",
+        "small": "text-sm text-muted-foreground",
+        "labels": "text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground"
+      }
     }
   },
-  "visual_enhancers": {
-    "glassmorphism": "Use 'Crystal Glass' for sticky headers and badges: bg-white/5 backdrop-blur-xl border border-white/10 shadow-sm.",
-    "borders": "1px subtle inner strokes (border-border) to define containers. Avoid heavy box-shadows in dark mode.",
-    "radius": "Large nested radii. rounded-3xl for main page containers, rounded-2xl for inner cards, full for pill buttons.",
-    "textures": "Use CSS noise overlay or grain to kill digital flatness and make it feel like a physical, safe space."
+  "colors": {
+    "css_variables": {
+      "light": {
+        "--background": "45 33% 97%",
+        "--foreground": "164 21% 14%",
+        "--card": "0 0% 100%",
+        "--card-foreground": "164 21% 14%",
+        "--popover": "0 0% 100%",
+        "--popover-foreground": "164 21% 14%",
+        "--primary": "173 58% 39%",
+        "--primary-foreground": "0 0% 100%",
+        "--secondary": "170 30% 94%",
+        "--secondary-foreground": "173 58% 39%",
+        "--muted": "43 27% 93%",
+        "--muted-foreground": "164 10% 45%",
+        "--accent": "27 87% 67%",
+        "--accent-foreground": "164 21% 14%",
+        "--destructive": "12 76% 61%",
+        "--destructive-foreground": "0 0% 100%",
+        "--border": "43 20% 88%",
+        "--input": "43 20% 88%",
+        "--ring": "173 58% 39%",
+        "--radius": "1rem"
+      }
+    },
+    "tailwind_palette_reference": {
+      "background": "#FCFBF8",
+      "foreground": "#1D2D2A",
+      "primary": "#2A9D8F",
+      "secondary": "#E9F5F3",
+      "muted": "#F2EFE9",
+      "accent": "#F4A261"
+    }
   },
   "components": {
-    "SafeBadge": "A pill-shaped glassmorphism badge showing 'Protected' with a Lucide shield icon, permanently visible to reassure anonymity.",
-    "CrisisAlertBanner": "A fixed top banner (semantic crisis background) with Nigerian helplines. Must be dismissible but highly visible. Rounded corners, not sharp edge-to-edge.",
-    "MoodTrackerWidget": "Bento-style card using Shadcn Charts (Recharts) with soft curved lines (monotone or primary color). No sharp grid lines behind the chart.",
-    "E2EChatBubble": "Soft, rounded-2xl bubbles. User (surface_hover), AI (surface_glass). Always display current detected emotional state subtly at the top."
+    "surface_strategies": {
+      "glass_cards": "bg-white/70 backdrop-blur-xl border border-white/40 shadow-[0_8px_32px_rgba(42,157,143,0.05)]",
+      "solid_cards": "bg-white border border-border shadow-sm rounded-2xl p-6",
+      "interactive_hover": "hover:-translate-y-1 hover:shadow-lg transition-all duration-300"
+    },
+    "emoji_system": {
+      "style": "Apple-ish flat round cohesive set. Do not mix outline icons with emojis in the same logical group.",
+      "usage": "Use extensively for categorisation, mood selection, and fast-action prompts to reduce cognitive load."
+    },
+    "specific_views": {
+      "onboarding": {
+        "layout": "Centered bento grid or spacious vertical flow (p-8 to p-12).",
+        "elements": "Simplified copy, feature list using emojis (e.g. 🛡️ Anonymous, 💬 Real-time Chat), warm 'Welcome' H1 in Fraunces.",
+        "background": "Cream background (#FCFBF8) with soft floating subtle accent blobs if possible."
+      },
+      "dashboard": {
+        "layout": "Control Room Grid (grid-cols-1 md:grid-cols-3 gap-6)",
+        "mood_picker": "Horizontal flex of 4-5 large emoji buttons (e.g. 😢 😐 😌 😃). Active state gets a soft secondary background and ring.",
+        "stat_tiles": "Glass cards, clean text, minimal borders.",
+        "action_cards": "Warmer cards (using secondary or muted backgrounds) with emoji headers."
+      },
+      "mood_tracker": {
+        "form": "Centered giant animated emoji (text-8xl) that changes based on selection. Score display clearly below it. Generous padding.",
+        "history_list": "Clean list where the emoji serves as the leading avatar/icon."
+      },
+      "chat": {
+        "header": "Clean, glassmorphism header. Warm welcome state ('Hi there, how are you feeling today?').",
+        "prompts_grid": "2x2 grid of buttons below the welcome message. E.g., 'Feeling Anxious 🌪️', 'Need to vent 🗣️'. Buttons are glass or solid white with soft shadow.",
+        "bubbles": "Patient (User) bubbles: Primary colored (Soft Teal). Bot bubbles: Muted/White."
+      },
+      "forum": {
+        "pills": "Topic selectors as rounded-full pills with emojis ('Anxiety 🌪️', 'Study Stress 📚').",
+        "empty_state": "Warm, illustrated or emoji-driven empty state ('Be the first to share 💛').",
+        "post_detail": "Spacious typography, Fraunces for post title, Inter for body."
+      },
+      "appointments": {
+        "counselor_cards": "Soft styling, large avatar (rounded-xl), clear 'Book' button (Primary color).",
+        "badges": "Emoji-led status badges (✅ Confirmed, ⏳ Pending)."
+      }
+    }
   },
-  "grids": {
-    "dashboard": "Bento Grid Mode B (High Density). grid-cols-1 md:grid-cols-3 lg:grid-cols-4. gap-6 or gap-8.",
-    "spacing": "Generous Spacing Philosophy. Use p-8 or p-12 inside cards. Do not cramp text."
+  "motion_and_animations": {
+    "philosophy": "Smooth, calming, spring-based interactions. Nothing jarring or aggressive.",
+    "specs": {
+      "emoji_bounce": "transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); hover:scale-110",
+      "page_enter": "Fade in and subtle slide up (duration-500 ease-out)",
+      "card_hover": "transition-all duration-300 ease-in-out hover:shadow-md hover:-translate-y-1"
+    }
   },
-  "layouts": {
-    "app_structure": "Sidebar navigation (glassmorphism) with a main content area that has a max-w-7xl constraint and margin auto to prevent infinite stretching.",
-    "chat_structure": "Centered constrained column (max-w-3xl) to feel intimate and focused, like a private journal."
-  },
-  "motion": {
-    "transitions": "All interactive elements need transition-all duration-300 ease-out.",
-    "hover_states": "Cards lift slightly (-translate-y-1) and borders brighten. Buttons subtly scale (scale-105).",
-    "entrance": "Staggered fade-up for list items (Framer Motion: initial={{opacity: 0, y: 10}} animate={{opacity: 1, y: 0}})."
-  },
-  "accessibility": {
-    "contrast": "Ensure text contrast meets APCA/WCAG standards. Use text-text_primary for main text, never pure white (#FFFFFF) against pure black.",
-    "focus": "All actionable elements must have focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background.",
-    "motion": "Respect prefers-reduced-motion media query."
+  "copywriting": {
+    "rules": [
+      {
+        "search": "patient",
+        "replace": "user",
+        "context": "Rename 'patients' to 'users' everywhere in user-facing copy to reduce clinical anxiety."
+      }
+    ]
   },
   "media": {
-    "icons": "lucide-react ONLY. NO EMOJIS.",
-    "3d_libraries": "None. Keep the interface minimal, flat, and extremely performant to avoid overwhelming users in distress."
+    "images": [
+      {
+        "category": "Hero / Onboarding",
+        "url": "https://images.unsplash.com/photo-1631131426242-0abfa7f209c2?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1ODR8MHwxfHNlYXJjaHwzfHxhZnJpY2FuJTIwc3R1ZGVudCUyMHNtaWxpbmd8ZW58MHx8fHwxNzc4MjY1NTEzfDA&ixlib=rb-4.1.0&q=85",
+        "description": "African student smiling (warm, inviting, relatable for the target audience)"
+      },
+      {
+        "category": "Counselor Avatar 1",
+        "url": "https://images.unsplash.com/photo-1739289671650-a5f3e0069d29?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njd8MHwxfHNlYXJjaHwzfHxhZnJpY2FuJTIwdGhlcmFwaXN0JTIwY291bnNlbG9yfGVufDB8fHx8MTc3ODI2NTUxM3ww&ixlib=rb-4.1.0&q=85",
+        "description": "Professional African therapist/counselor engaging with a user"
+      },
+      {
+        "category": "Counselor Avatar 2",
+        "url": "https://images.unsplash.com/photo-1747715506500-a458cf9ddf92?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njd8MHwxfHNlYXJjaHwyfHxhZnJpY2FuJTIwdGhlcmFwaXN0JTIwY291bnNlbG9yfGVufDB8fHx8MTc3ODI2NTUxM3ww&ixlib=rb-4.1.0&q=85",
+        "description": "Calm African counselor looking out"
+      },
+      {
+        "category": "Background / Resource Cover",
+        "url": "https://images.unsplash.com/photo-1737216076821-d553675c01ce?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA0MTJ8MHwxfHNlYXJjaHwxfHxjYWxtaW5nJTIwbmF0dXJlJTIwc3VubGlnaHR8ZW58MHx8fHwxNzc4MjY1NTEzfDA&ixlib=rb-4.1.0&q=85",
+        "description": "Calming nature sunlight (use for empty states, resource cards, or soft background overlays)"
+      }
+    ]
   },
-  "image_urls": [
-    {
-      "url": "https://images.unsplash.com/photo-1772445693223-e37f27076b9b?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1OTV8MHwxfHNlYXJjaHwxfHxjYWxtJTIwZGFyayUyMGFic3RyYWN0JTIwdGV4dHVyZXxlbnwwfHx8fDE3NzQzODAwMzV8MA&ixlib=rb-4.1.0&q=85",
-      "category": "background",
-      "description": "Rippling dark water surface - Use as subtle low-opacity background for onboarding/login screen to create a calm atmosphere."
-    },
-    {
-      "url": "https://images.unsplash.com/photo-1759766409848-acb41d52358b?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1OTV8MHwxfHNlYXJjaHwyfHxjYWxtJTIwZGFyayUyMGFic3RyYWN0JTIwdGV4dHVyZXxlbnwwfHx8fDE3NzQzODAwMzV8MA&ixlib=rb-4.1.0&q=85",
-      "category": "texture",
-      "description": "Dark gray textured surface - Use as an overlay or background for the resources library."
-    },
-    {
-      "url": "https://images.pexels.com/photos/3360204/pexels-photo-3360204.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
-      "category": "resource_thumbnail",
-      "description": "Man relaxing - Use as a thumbnail for mental health resources or community forum headers."
-    }
-  ],
+  "testing": {
+    "rules": [
+      "All interactive elements (buttons, inputs, links, emoji pickers) MUST have a data-testid attribute.",
+      "Do NOT alter existing auth/role logic data-testid attributes."
+    ]
+  },
   "instructions_to_main_agent": [
-    "Implement a dark theme by default, using the provided 'Deep Forest Glow' color palette.",
-    "Ensure Shadcn components are heavily customized. Remove their default clinical Vercel-look borders and apply rounded-2xl or rounded-3xl with our custom colors.",
-    "For the 'Protected' anonymous badge, use a Glassmorphism pill with a shield icon from lucide-react.",
-    "The E2EE chat should NOT feel like a clinical medical tool. It should feel like a safe, intimate journal.",
-    "Ensure the Nigerian helplines banner uses the 'crisis' semantic color (muted terracotta, #E17055) but remains visually grounded, not alarming.",
-    "Use standard HTML + Tailwind for major layouts, and Shadcn for complex interactions (Dropdowns, Dialogs).",
-    "Always add data-testid attributes to all interactive elements."
-  ],
-  "UNIVERSAL GUIDELINES FOR MAIN AGENT": [
-    "You tend to converge toward generic outputs. Avoid this. Make the frontend distinctive and deeply calming.",
-    "Dark colors look good independently. DO NOT use dark colors as gradients.",
-    "Create depth through layered design elements with z-index hierarchy.",
-    "Use glass-morphism effects (bg-white/5 backdrop-blur-xl).",
-    "Do NOT center align the app container. No .App { text-align: center; }",
-    "Always use modern pill-shaped or rounded-2xl buttons.",
-    "NEVER use emojis for icons. Use lucide-react.",
-    "Use 2-3x more spacing than typical (p-8, p-12).",
-    "Use sonner for toasts at /app/frontend/src/components/ui/sonner.js."
+    "Implement the soft teal and warm cream palette using the exact HSL variables provided.",
+    "Use Fraunces (font-serif) for all Headings (H1, H2, H3) and Inter (font-sans) for body text.",
+    "Incorporate the 'glass_cards' strategy for dashboard tiles and panels to make the UI feel breathable and premium.",
+    "Ensure the Onboarding flows use the designated images and have a welcoming, spacious layout.",
+    "Implement the emoji-driven UI exactly as specified: giant animated emoji for Mood Tracker, 2x2 grid for Chat prompts, emoji pills for Forum topics, and emoji mood picker for the Dashboard.",
+    "Globally replace the term 'patient' with 'user' in all user-facing text.",
+    "Do NOT alter the underlying authentication or role-based logic."
   ]
 }
