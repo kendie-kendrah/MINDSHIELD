@@ -216,7 +216,7 @@ export default function AdminNotificationBell() {
         >
           <div className="flex items-center justify-between p-4 border-b border-[#2A4036]" style={{ backgroundColor: "#14221D" }}>
             <div className="flex items-center gap-2">
-              <h3 className="font-['Manrope'] font-extrabold text-base text-white tracking-tight">Notifications</h3>
+              <h3 className="font-['Fraunces'] font-extrabold text-base text-white tracking-tight">Notifications</h3>
               <span
                 className={`inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${wsConnected ? "bg-[#4ADE80]/15 text-[#4ADE80]" : "bg-[#A3B8AF]/15 text-[#A3B8AF]"}`}
                 data-testid="ws-status"

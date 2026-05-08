@@ -11,7 +11,14 @@ import useStore from "@/store/useStore";
 import axios from "axios";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-const TOPICS = ["all", "Anxiety", "Depression", "Relationships", "General"];
+const TOPICS = [
+  { key: "all", label: "All Topics", emoji: "✨" },
+  { key: "Anxiety", label: "Anxiety", emoji: "🌪️" },
+  { key: "Depression", label: "Depression", emoji: "🌧️" },
+  { key: "Relationships", label: "Relationships", emoji: "💞" },
+  { key: "General", label: "General", emoji: "💬" },
+];
+const TOPIC_EMOJI = { Anxiety: "🌪️", Depression: "🌧️", Relationships: "💞", General: "💬" };
 
 export default function Forum() {
   const { user, forumPosts, setForumPosts } = useStore();
@@ -77,7 +84,7 @@ export default function Forum() {
     <div className="space-y-6" data-testid="forum-page">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-['Manrope'] text-2xl sm:text-3xl font-bold tracking-tight text-[#F0F4F2]">Community Forum</h1>
+          <h1 className="font-['Fraunces'] text-2xl sm:text-3xl font-bold tracking-tight text-[#F0F4F2]">Community Forum</h1>
           <p className="text-sm text-[#A3B8AF] mt-1">Anonymous peer support. You are not alone.</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -88,7 +95,7 @@ export default function Forum() {
           </DialogTrigger>
           <DialogContent className="bg-[#14221D] border-[#2A4036] rounded-3xl max-w-md">
             <DialogHeader>
-              <DialogTitle className="font-['Manrope'] text-[#F0F4F2]">Share with the Community</DialogTitle>
+              <DialogTitle className="font-['Fraunces'] text-[#F0F4F2]">Share with the Community</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 mt-4">
               <Select value={newPost.topic} onValueChange={(v) => setNewPost((p) => ({ ...p, topic: v }))}>
@@ -96,8 +103,10 @@ export default function Forum() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-[#14221D] border-[#2A4036]">
-                  {TOPICS.filter((t) => t !== "all").map((t) => (
-                    <SelectItem key={t} value={t} className="text-[#F0F4F2] focus:bg-[#1C2F28] focus:text-[#F0F4F2]">{t}</SelectItem>
+                  {TOPICS.filter((t) => t.key !== "all").map((t) => (
+                    <SelectItem key={t.key} value={t.key} className="text-[#F0F4F2] focus:bg-[#1C2F28] focus:text-[#F0F4F2]">
+                      <span className="mr-1.5">{t.emoji}</span> {t.label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -125,12 +134,12 @@ export default function Forum() {
         <TabsList className="bg-[#14221D] border border-[#2A4036] rounded-2xl p-1 h-auto flex-wrap" data-testid="forum-topic-tabs">
           {TOPICS.map((t) => (
             <TabsTrigger
-              key={t}
-              value={t}
-              data-testid={`tab-${t.toLowerCase()}`}
-              className="rounded-xl text-sm data-[state=active]:bg-[#6B8E7B]/20 data-[state=active]:text-[#6B8E7B] text-[#A3B8AF] px-4 py-2"
+              key={t.key}
+              value={t.key}
+              data-testid={`tab-${t.key.toLowerCase()}`}
+              className="rounded-xl text-sm data-[state=active]:bg-[#6B8E7B]/20 data-[state=active]:text-[#6B8E7B] text-[#A3B8AF] px-3 py-2 flex items-center gap-1.5"
             >
-              {t === "all" ? "All Topics" : t}
+              <span aria-hidden>{t.emoji}</span> {t.label}
             </TabsTrigger>
           ))}
         </TabsList>
@@ -141,9 +150,10 @@ export default function Forum() {
           <div className="text-center py-12 text-[#A3B8AF]">Loading posts...</div>
         )}
         {!loading && forumPosts.length === 0 && (
-          <div className="text-center py-12 animate-fade-up" data-testid="forum-empty">
-            <Users className="w-10 h-10 text-[#2A4036] mx-auto mb-3" />
-            <p className="text-sm text-[#A3B8AF]">No posts yet. Be the first to share.</p>
+          <div className="text-center py-16 animate-fade-up" data-testid="forum-empty">
+            <div className="text-5xl mb-3" aria-hidden>💛</div>
+            <p className="text-base font-['Fraunces'] font-semibold text-[#F0F4F2]">It's quiet here.</p>
+            <p className="text-sm text-[#A3B8AF] mt-1">Be the first to share something kind.</p>
           </div>
         )}
         {forumPosts.map((post) => (
@@ -164,7 +174,8 @@ export default function Forum() {
                   </div>
                 </div>
               </div>
-              <span className="px-2.5 py-1 rounded-full bg-[#6B8E7B]/10 text-[10px] text-[#6B8E7B] font-medium uppercase tracking-wider">
+              <span className="px-2.5 py-1 rounded-full bg-[#6B8E7B]/10 text-[10px] text-[#6B8E7B] font-medium uppercase tracking-wider flex items-center gap-1">
+                <span aria-hidden>{TOPIC_EMOJI[post.topic] || "💬"}</span>
                 {post.topic}
               </span>
             </div>

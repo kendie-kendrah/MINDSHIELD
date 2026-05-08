@@ -99,7 +99,7 @@ export default function AdminManagement() {
     <div className="space-y-6" data-testid="admin-management">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="font-['Manrope'] text-2xl sm:text-3xl font-bold tracking-tight text-[#F0F4F2]">Management</h1>
+          <h1 className="font-['Fraunces'] text-2xl sm:text-3xl font-bold tracking-tight text-[#F0F4F2]">Management</h1>
           <p className="text-sm text-[#A3B8AF] mt-1">Manage users, counselors, and invitations.</p>
         </div>
         {tab === "invites" && (
@@ -111,7 +111,7 @@ export default function AdminManagement() {
             </DialogTrigger>
             <DialogContent className="bg-[#14221D] border-[#2A4036] rounded-3xl max-w-md">
               <DialogHeader>
-                <DialogTitle className="font-['Manrope'] text-[#F0F4F2]">Generate Counselor Invite</DialogTitle>
+                <DialogTitle className="font-['Fraunces'] text-[#F0F4F2]">Generate Counselor Invite</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 mt-4">
                 <div className="space-y-2">

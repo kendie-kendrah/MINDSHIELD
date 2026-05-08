@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { MessageCircle, Activity, Users, Calendar, BookOpen, TrendingUp, ChevronRight, Sparkles } from "lucide-react";
+import { MessageCircle, ChevronRight, Sparkles, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
 import useStore from "@/store/useStore";
 import axios from "axios";
@@ -10,17 +9,25 @@ import axios from "axios";
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const QUICK_LINKS = [
-  { path: "/chat", label: "AI Chat", icon: MessageCircle, desc: "Talk with MindShield AI", color: "#6B8E7B" },
-  { path: "/mood", label: "Mood Tracker", icon: Activity, desc: "Log how you feel today", color: "#FCD34D" },
-  { path: "/forum", label: "Community", icon: Users, desc: "Anonymous peer support", color: "#83A894" },
-  { path: "/appointments", label: "Appointments", icon: Calendar, desc: "Book a session", color: "#4ADE80" },
-  { path: "/resources", label: "Resources", icon: BookOpen, desc: "Coping tools & guides", color: "#A3B8AF" },
+  { path: "/chat", label: "AI Chat", emoji: "💬", desc: "Talk with MindShield AI" },
+  { path: "/mood", label: "Mood Tracker", emoji: "📈", desc: "Log how you feel today" },
+  { path: "/forum", label: "Community", emoji: "🤝", desc: "Anonymous peer support" },
+  { path: "/appointments", label: "Appointments", emoji: "📅", desc: "Book a session" },
+  { path: "/resources", label: "Resources", emoji: "📚", desc: "Coping tools & guides" },
+];
+
+const MOOD_OPTIONS = [
+  { score: 2, emoji: "😢", label: "Struggling" },
+  { score: 4, emoji: "😟", label: "Low" },
+  { score: 6, emoji: "😐", label: "Okay" },
+  { score: 8, emoji: "😌", label: "Good" },
+  { score: 10, emoji: "😃", label: "Great" },
 ];
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useStore();
-  const [moodScore, setMoodScore] = useState([5]);
+  const [moodChoice, setMoodChoice] = useState(null);
   const [logging, setLogging] = useState(false);
   const [recentMood, setRecentMood] = useState(null);
   const [insight, setInsight] = useState(null);
@@ -43,10 +50,12 @@ export default function Dashboard() {
   };
 
   const handleQuickMood = async () => {
+    if (!moodChoice) return;
     setLogging(true);
     try {
-      await axios.post(`${API}/mood/log`, { mood_score: moodScore[0] }, { headers: authHeaders });
-      toast.success(`Mood logged: ${moodScore[0]}/10`);
+      await axios.post(`${API}/mood/log`, { mood_score: moodChoice.score }, { headers: authHeaders });
+      toast.success(`${moodChoice.emoji} Mood logged: ${moodChoice.label}`);
+      setMoodChoice(null);
       fetchRecentMood();
     } catch (e) {
       toast.error("Failed to log mood");
@@ -69,18 +78,11 @@ export default function Dashboard() {
     return "Good evening";
   };
 
-  const getMoodEmoji = (score) => {
-    if (score <= 3) return "Struggling";
-    if (score <= 5) return "Managing";
-    if (score <= 7) return "Good";
-    return "Great";
-  };
-
   return (
     <div className="space-y-8" data-testid="dashboard-page">
       {/* Greeting */}
       <div className="animate-fade-up">
-        <h1 className="font-['Manrope'] text-3xl sm:text-4xl font-bold tracking-tight text-[#F0F4F2]">
+        <h1 className="font-['Fraunces'] text-3xl sm:text-4xl font-semibold tracking-tight text-[#F0F4F2]">
           {getTimeGreeting()}, {user?.pseudonym}
         </h1>
         <p className="mt-2 text-sm text-[#A3B8AF] leading-relaxed">
@@ -89,48 +91,47 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 stagger-children">
-        {/* Quick Mood Log - spans 2 cols */}
+        {/* Quick Mood Log - emoji picker */}
         <div className="md:col-span-2 rounded-3xl bg-[#14221D] border border-[#2A4036] p-8 card-lift animate-fade-up" data-testid="quick-mood-card">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="font-['Manrope'] font-bold text-[#F0F4F2]">Quick Mood Check</h2>
-            <span className="text-2xl font-['Manrope'] font-bold text-[#6B8E7B]">{moodScore[0]}/10</span>
+          <h2 className="font-['Fraunces'] font-semibold text-[#F0F4F2] text-lg mb-1">How are you feeling?</h2>
+          <p className="text-xs text-[#A3B8AF] mb-6">Tap an emoji to log a quick mood</p>
+
+          <div className="flex justify-between gap-2 mb-6" data-testid="mood-emoji-row">
+            {MOOD_OPTIONS.map((m) => {
+              const active = moodChoice?.score === m.score;
+              return (
+                <button
+                  key={m.score}
+                  onClick={() => setMoodChoice(m)}
+                  data-testid={`mood-emoji-${m.score}`}
+                  className={`flex-1 flex flex-col items-center gap-1.5 py-3 rounded-2xl transition-all duration-300 ${active ? "bg-[#6B8E7B]/20 ring-2 ring-[#6B8E7B] scale-105" : "bg-white/[0.02] hover:bg-white/[0.05] hover:scale-105"}`}
+                >
+                  <span className="text-3xl" aria-hidden>{m.emoji}</span>
+                  <span className={`text-[10px] font-medium ${active ? "text-[#6B8E7B]" : "text-[#A3B8AF]"}`}>{m.label}</span>
+                </button>
+              );
+            })}
           </div>
 
-          <div className="space-y-4">
-            <Slider
-              value={moodScore}
-              onValueChange={setMoodScore}
-              min={1}
-              max={10}
-              step={1}
-              data-testid="mood-slider"
-              className="mood-slider"
-            />
-            <div className="flex justify-between text-xs text-[#A3B8AF]">
-              <span>Struggling</span>
-              <span className="font-medium text-[#6B8E7B]">{getMoodEmoji(moodScore[0])}</span>
-              <span>Thriving</span>
-            </div>
-            <Button
-              onClick={handleQuickMood}
-              disabled={logging}
-              data-testid="log-mood-btn"
-              className="w-full h-10 rounded-2xl bg-[#6B8E7B]/20 hover:bg-[#6B8E7B]/30 text-[#6B8E7B] font-medium text-sm transition-all duration-300"
-            >
-              {logging ? "Logging..." : "Log Today's Mood"}
-            </Button>
-          </div>
+          <Button
+            onClick={handleQuickMood}
+            disabled={!moodChoice || logging}
+            data-testid="log-mood-btn"
+            className="w-full h-11 rounded-2xl bg-[#6B8E7B] hover:bg-[#83A894] disabled:bg-[#6B8E7B]/30 text-[#0C1411] disabled:text-[#0C1411]/50 font-['Fraunces'] font-semibold text-sm transition-all duration-300"
+          >
+            {logging ? "Logging..." : moodChoice ? `Log ${moodChoice.label}` : "Pick an emoji to log"}
+          </Button>
         </div>
 
         {/* Mood Summary */}
         <div className="rounded-3xl bg-[#14221D] border border-[#2A4036] p-8 card-lift animate-fade-up" data-testid="mood-summary-card">
           <div className="flex items-center gap-2 mb-4">
-            <TrendingUp className="w-4 h-4 text-[#6B8E7B]" />
-            <h3 className="text-sm font-['Manrope'] font-bold text-[#F0F4F2]">This Week</h3>
+            <TrendingUp className="w-4 h-4 text-[#F4A261]" />
+            <h3 className="text-sm font-['Fraunces'] font-semibold text-[#F0F4F2]">This Week</h3>
           </div>
           {recentMood ? (
             <div className="space-y-2">
-              <p className="text-3xl font-['Manrope'] font-bold text-[#6B8E7B]">{recentMood.average}</p>
+              <p className="text-3xl font-['Fraunces'] font-semibold text-[#6B8E7B]">{recentMood.average}</p>
               <p className="text-xs text-[#A3B8AF]">Average from {recentMood.count} entries</p>
             </div>
           ) : (
@@ -155,8 +156,8 @@ export default function Dashboard() {
           onClick={() => navigate("/chat")}
           data-testid="chat-cta-card"
         >
-          <MessageCircle className="w-8 h-8 text-[#6B8E7B] mb-4" />
-          <h3 className="font-['Manrope'] font-bold text-[#F0F4F2] mb-1">Talk to MindShield</h3>
+          <div className="text-3xl mb-4" aria-hidden>💬</div>
+          <h3 className="font-['Fraunces'] font-semibold text-[#F0F4F2] text-lg mb-1">Talk to MindShield</h3>
           <p className="text-xs text-[#A3B8AF] leading-relaxed">AI-powered support, available 24/7. Completely anonymous.</p>
           <div className="flex items-center gap-1 mt-4 text-xs text-[#6B8E7B] font-medium">
             Start chatting <ChevronRight className="w-3.5 h-3.5" />
@@ -171,8 +172,8 @@ export default function Dashboard() {
             className="rounded-2xl bg-[#14221D] border border-[#2A4036] p-6 card-lift cursor-pointer animate-fade-up"
             data-testid={`quick-link-${link.label.toLowerCase().replace(/\s/g, '-')}`}
           >
-            <link.icon className="w-5 h-5 mb-3" style={{ color: link.color }} />
-            <h3 className="text-sm font-['Manrope'] font-bold text-[#F0F4F2]">{link.label}</h3>
+            <div className="text-2xl mb-3" aria-hidden>{link.emoji}</div>
+            <h3 className="text-sm font-['Fraunces'] font-semibold text-[#F0F4F2]">{link.label}</h3>
             <p className="text-xs text-[#A3B8AF] mt-1">{link.desc}</p>
           </div>
         ))}

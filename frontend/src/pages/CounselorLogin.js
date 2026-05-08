@@ -103,7 +103,7 @@ export default function CounselorLogin() {
             <div className="w-16 h-16 rounded-2xl bg-[#4ADE80]/10 flex items-center justify-center mx-auto">
               <Stethoscope className="w-8 h-8 text-[#4ADE80]" />
             </div>
-            <h1 className="font-['Manrope'] text-2xl font-bold tracking-tight text-[#F0F4F2]">
+            <h1 className="font-['Fraunces'] text-2xl font-bold tracking-tight text-[#F0F4F2]">
               Welcome, {user.pseudonym}
             </h1>
             <p className="text-sm text-[#A3B8AF] leading-relaxed">
@@ -115,7 +115,7 @@ export default function CounselorLogin() {
             <div>
               <p className="text-xs text-[#A3B8AF] uppercase tracking-[0.2em] mb-2">Pseudonym</p>
               <div className="flex items-center justify-between">
-                <p className="font-['Manrope'] font-bold text-[#F0F4F2]" data-testid="counselor-display-pseudonym">{user.pseudonym}</p>
+                <p className="font-['Fraunces'] font-bold text-[#F0F4F2]" data-testid="counselor-display-pseudonym">{user.pseudonym}</p>
                 <button
                   onClick={() => copyToClipboard(user.pseudonym, "Pseudonym")}
                   data-testid="counselor-copy-pseudonym"
@@ -151,7 +151,7 @@ export default function CounselorLogin() {
           <Button
             onClick={() => navigate("/counselor/dashboard")}
             data-testid="counselor-enter-dashboard"
-            className="w-full h-12 rounded-2xl bg-[#6B8E7B] hover:bg-[#83A894] text-[#0C1411] font-['Manrope'] font-bold text-sm transition-all duration-300 hover:scale-[1.02]"
+            className="w-full h-12 rounded-2xl bg-[#6B8E7B] hover:bg-[#83A894] text-[#0C1411] font-['Fraunces'] font-bold text-sm transition-all duration-300 hover:scale-[1.02]"
           >
             Enter Counselor Dashboard
             <ArrowRight className="w-4 h-4 ml-2" />
@@ -170,7 +170,7 @@ export default function CounselorLogin() {
             <Stethoscope className="w-10 h-10 text-[#6B8E7B]" />
           </div>
           <div>
-            <h1 className="font-['Manrope'] text-3xl sm:text-4xl font-bold tracking-tighter text-[#F0F4F2]">
+            <h1 className="font-['Fraunces'] text-3xl sm:text-4xl font-bold tracking-tighter text-[#F0F4F2]">
               Counselor Portal
             </h1>
             <p className="mt-2 text-sm text-[#A3B8AF] leading-relaxed">
@@ -234,7 +234,7 @@ export default function CounselorLogin() {
               onClick={handleLogin}
               disabled={loading || !loginId.trim()}
               data-testid="counselor-login-submit"
-              className="w-full h-12 rounded-2xl bg-[#6B8E7B] hover:bg-[#83A894] text-[#0C1411] font-['Manrope'] font-bold transition-all duration-300 hover:scale-[1.02]"
+              className="w-full h-12 rounded-2xl bg-[#6B8E7B] hover:bg-[#83A894] text-[#0C1411] font-['Fraunces'] font-bold transition-all duration-300 hover:scale-[1.02]"
             >
               {loading ? "Signing in..." : "Sign In as Counselor"}
             </Button>
@@ -295,7 +295,7 @@ export default function CounselorLogin() {
               onClick={handleRegister}
               disabled={loading || !accessCode.trim() || !specialty}
               data-testid="counselor-register-submit"
-              className="w-full h-12 rounded-2xl bg-[#6B8E7B] hover:bg-[#83A894] text-[#0C1411] font-['Manrope'] font-bold transition-all duration-300 hover:scale-[1.02]"
+              className="w-full h-12 rounded-2xl bg-[#6B8E7B] hover:bg-[#83A894] text-[#0C1411] font-['Fraunces'] font-bold transition-all duration-300 hover:scale-[1.02]"
             >
               {loading ? "Registering..." : "Register as Counselor"}
               <ArrowRight className="w-4 h-4 ml-2" />
@@ -306,10 +306,10 @@ export default function CounselorLogin() {
         <div className="text-center space-y-2">
           <button
             onClick={() => navigate("/")}
-            data-testid="back-to-patient-login"
+            data-testid="back-to-user-login"
             className="text-sm text-[#6B8E7B] hover:text-[#83A894] transition-colors"
           >
-            Back to patient login
+            Back to user login
           </button>
         </div>
       </div>

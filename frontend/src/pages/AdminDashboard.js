@@ -53,7 +53,7 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-8" data-testid="admin-dashboard">
       <div>
-        <h1 className="font-['Manrope'] text-2xl sm:text-3xl font-bold tracking-tight text-[#F0F4F2]">Platform Analytics</h1>
+        <h1 className="font-['Fraunces'] text-2xl sm:text-3xl font-bold tracking-tight text-[#F0F4F2]">Platform Analytics</h1>
         <p className="text-sm text-[#A3B8AF] mt-1">Overview of MindShield platform activity.</p>
       </div>
 
@@ -61,7 +61,7 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-3 gap-4">
         {RECENT.map((r) => (
           <div key={r.label} className="rounded-2xl bg-[#14221D] border border-[#2A4036] p-5 text-center animate-fade-up" data-testid={`recent-${r.label.slice(0,8).toLowerCase().replace(/\s/g,'-')}`}>
-            <p className="text-3xl font-['Manrope'] font-bold" style={{ color: r.color }}>{r.value}</p>
+            <p className="text-3xl font-['Fraunces'] font-bold" style={{ color: r.color }}>{r.value}</p>
             <p className="text-xs text-[#A3B8AF] mt-1">{r.label}</p>
           </div>
         ))}
@@ -74,7 +74,7 @@ export default function AdminDashboard() {
             <div className="flex items-center justify-between mb-2">
               <s.icon className="w-4 h-4" style={{ color: s.color }} />
             </div>
-            <p className="text-xl font-['Manrope'] font-bold text-[#F0F4F2]">{s.value}</p>
+            <p className="text-xl font-['Fraunces'] font-bold text-[#F0F4F2]">{s.value}</p>
             <p className="text-[10px] text-[#A3B8AF] uppercase tracking-wider mt-0.5">{s.label}</p>
           </div>
         ))}
@@ -82,7 +82,7 @@ export default function AdminDashboard() {
 
       {/* Recent Crisis Alerts */}
       <div>
-        <h2 className="font-['Manrope'] font-bold text-[#F0F4F2] text-lg mb-4 flex items-center gap-2">
+        <h2 className="font-['Fraunces'] font-bold text-[#F0F4F2] text-lg mb-4 flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 text-[#E17055]" /> Recent Crisis Alerts
         </h2>
         {crisisAlerts.length === 0 ? (

@@ -47,7 +47,7 @@ export default function Resources() {
   return (
     <div className="space-y-6" data-testid="resources-page">
       <div>
-        <h1 className="font-['Manrope'] text-2xl sm:text-3xl font-bold tracking-tight text-[#F0F4F2]">Resources</h1>
+        <h1 className="font-['Fraunces'] text-2xl sm:text-3xl font-bold tracking-tight text-[#F0F4F2]">Resources</h1>
         <p className="text-sm text-[#A3B8AF] mt-1">Evidence-based tools and guides for your mental wellbeing.</p>
       </div>
 
@@ -105,7 +105,7 @@ export default function Resources() {
                       <BookOpen className="w-5 h-5" style={{ color }} />
                     </div>
                     <div>
-                      <h3 className="font-['Manrope'] font-bold text-[#F0F4F2] text-sm">{resource.title}</h3>
+                      <h3 className="font-['Fraunces'] font-bold text-[#F0F4F2] text-sm">{resource.title}</h3>
                       <span
                         className="inline-block mt-1 px-2 py-0.5 rounded-lg text-[10px] font-medium uppercase tracking-wider"
                         style={{ backgroundColor: `${color}15`, color }}

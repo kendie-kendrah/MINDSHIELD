@@ -97,19 +97,30 @@ export default function MoodTracker() {
   return (
     <div className="space-y-8" data-testid="mood-tracker-page">
       <div>
-        <h1 className="font-['Manrope'] text-2xl sm:text-3xl font-bold tracking-tight text-[#F0F4F2]">Mood Tracker</h1>
+        <h1 className="font-['Fraunces'] text-2xl sm:text-3xl font-bold tracking-tight text-[#F0F4F2]">Mood Tracker</h1>
         <p className="text-sm text-[#A3B8AF] mt-1">Track your emotional journey. Every entry matters.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Log Form */}
         <div className="rounded-3xl bg-[#14221D] border border-[#2A4036] p-8" data-testid="mood-log-form">
-          <h2 className="font-['Manrope'] font-bold text-[#F0F4F2] mb-6">How are you feeling?</h2>
+          <h2 className="font-['Fraunces'] font-semibold text-[#F0F4F2] text-lg mb-6">How are you feeling?</h2>
 
           <div className="space-y-6">
-            <div className="text-center">
-              <p className="text-5xl font-['Manrope'] font-bold text-[#6B8E7B]">{score[0]}</p>
-              <p className="text-sm text-[#A3B8AF] mt-1">{getMoodLabel(score[0])}</p>
+            {/* Giant animated emoji */}
+            <div className="text-center py-2" data-testid="giant-mood-emoji">
+              <div className="text-7xl sm:text-8xl transition-transform duration-500 ease-out hover:scale-110" aria-hidden>
+                {(() => {
+                  const s = score[0];
+                  if (s <= 2) return "😢";
+                  if (s <= 4) return "😟";
+                  if (s <= 6) return "😐";
+                  if (s <= 8) return "😌";
+                  return "😃";
+                })()}
+              </div>
+              <p className="text-5xl font-['Fraunces'] font-semibold text-[#6B8E7B] mt-3">{score[0]}<span className="text-lg text-[#A3B8AF] font-normal">/10</span></p>
+              <p className="text-sm text-[#A3B8AF] mt-1 font-medium">{getMoodLabel(score[0])}</p>
             </div>
 
             <Slider
@@ -138,7 +149,7 @@ export default function MoodTracker() {
               onClick={handleLog}
               disabled={logging}
               data-testid="submit-mood-btn"
-              className="w-full h-11 rounded-2xl bg-[#6B8E7B] hover:bg-[#83A894] text-[#0C1411] font-['Manrope'] font-bold transition-all duration-300"
+              className="w-full h-11 rounded-2xl bg-[#6B8E7B] hover:bg-[#83A894] text-[#0C1411] font-['Fraunces'] font-semibold transition-all duration-300"
             >
               {logging ? "Logging..." : "Log Mood"}
             </Button>
@@ -148,7 +159,7 @@ export default function MoodTracker() {
         {/* Chart */}
         <div className="lg:col-span-2 rounded-3xl bg-[#14221D] border border-[#2A4036] p-8" data-testid="mood-chart-card">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="font-['Manrope'] font-bold text-[#F0F4F2]">30-Day Trend</h2>
+            <h2 className="font-['Fraunces'] font-bold text-[#F0F4F2]">30-Day Trend</h2>
             <div className="flex items-center gap-4">
               {avg && (
                 <div className="flex items-center gap-2">
@@ -196,7 +207,7 @@ export default function MoodTracker() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-[#6B8E7B]" />
-            <h2 className="font-['Manrope'] font-bold text-[#F0F4F2]">AI Mood Insight</h2>
+            <h2 className="font-['Fraunces'] font-bold text-[#F0F4F2]">AI Mood Insight</h2>
           </div>
           <Button
             onClick={fetchInsight}

@@ -60,7 +60,7 @@ export default function AdminModeration() {
   return (
     <div className="space-y-6" data-testid="admin-moderation">
       <div>
-        <h1 className="font-['Manrope'] text-2xl sm:text-3xl font-bold tracking-tight text-[#F0F4F2]">Moderation</h1>
+        <h1 className="font-['Fraunces'] text-2xl sm:text-3xl font-bold tracking-tight text-[#F0F4F2]">Moderation</h1>
         <p className="text-sm text-[#A3B8AF] mt-1">Review content and monitor crisis events.</p>
       </div>
 

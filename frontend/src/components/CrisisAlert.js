@@ -19,7 +19,7 @@ export default function CrisisAlert({ onDismiss }) {
               <AlertTriangle className="w-5 h-5 text-[#E17055]" />
             </div>
             <div>
-              <h4 className="font-['Manrope'] font-bold text-[#F0F4F2] text-sm">You are not alone. Help is available.</h4>
+              <h4 className="font-['Fraunces'] font-bold text-[#F0F4F2] text-sm">You are not alone. Help is available.</h4>
               <p className="text-xs text-[#A3B8AF] mt-1 leading-relaxed">
                 If you are in crisis, please reach out to a trained professional:
               </p>
@@ -33,7 +33,7 @@ export default function CrisisAlert({ onDismiss }) {
                   >
                     <Phone className="w-3.5 h-3.5" />
                     <span className="font-medium">{h.name}:</span>
-                    <span className="font-['Manrope'] font-bold">{h.number}</span>
+                    <span className="font-['Fraunces'] font-bold">{h.number}</span>
                   </a>
                 ))}
               </div>

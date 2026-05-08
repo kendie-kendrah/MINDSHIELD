@@ -75,8 +75,8 @@ export default function Onboarding() {
             <div className="w-16 h-16 rounded-2xl bg-[#4ADE80]/10 flex items-center justify-center mx-auto">
               <Shield className="w-8 h-8 text-[#4ADE80]" />
             </div>
-            <h1 className="font-['Manrope'] text-2xl font-bold tracking-tight text-[#F0F4F2]">
-              Your Identity is Ready
+            <h1 className="font-['Fraunces'] text-2xl font-semibold tracking-tight text-[#F0F4F2]">
+              Your identity is ready
             </h1>
             <p className="text-sm text-[#A3B8AF] leading-relaxed">
               Save your UUID below. It is your only way to access MindShield. We store nothing else.
@@ -88,7 +88,7 @@ export default function Onboarding() {
               <div>
                 <p className="text-xs text-[#A3B8AF] uppercase tracking-[0.2em] mb-2">Pseudonym</p>
                 <div className="flex items-center justify-between">
-                  <p className="font-['Manrope'] font-bold text-[#F0F4F2]" data-testid="display-pseudonym">{user.pseudonym}</p>
+                  <p className="font-['Fraunces'] font-bold text-[#F0F4F2]" data-testid="display-pseudonym">{user.pseudonym}</p>
                   <button
                     onClick={() => copyToClipboard(user.pseudonym, "Pseudonym")}
                     data-testid="copy-pseudonym-btn"
@@ -125,7 +125,7 @@ export default function Onboarding() {
           <Button
             onClick={() => navigate("/dashboard")}
             data-testid="enter-platform-btn"
-            className="w-full h-12 rounded-2xl bg-[#6B8E7B] hover:bg-[#83A894] text-[#0C1411] font-['Manrope'] font-bold text-sm transition-all duration-300 hover:scale-[1.02]"
+            className="w-full h-12 rounded-2xl bg-[#6B8E7B] hover:bg-[#83A894] text-[#0C1411] font-['Fraunces'] font-bold text-sm transition-all duration-300 hover:scale-[1.02]"
           >
             Enter MindShield
             <ArrowRight className="w-4 h-4 ml-2" />
@@ -144,26 +144,28 @@ export default function Onboarding() {
             <Shield className="w-10 h-10 text-[#6B8E7B]" />
           </div>
           <div>
-            <h1 className="font-['Manrope'] text-4xl sm:text-5xl font-bold tracking-tighter text-[#F0F4F2]">
+            <h1 className="font-['Fraunces'] text-4xl sm:text-5xl font-semibold tracking-tight text-[#F0F4F2]">
               MindShield
             </h1>
-            <p className="mt-2 text-sm md:text-base text-[#A3B8AF] leading-relaxed max-w-xs mx-auto">
-              Anonymous, AI-powered mental health support. Your privacy is our foundation.
+            <p className="mt-3 text-base text-[#A3B8AF] leading-relaxed max-w-xs mx-auto">
+              A calm, anonymous space to talk, track your mood, and feel a little better.
             </p>
           </div>
         </div>
 
         {step === "welcome" && (
           <div className="space-y-6 stagger-children">
-            {/* Features */}
+            {/* Feature emojis */}
             <div className="grid grid-cols-2 gap-3">
               {[
-                { icon: Shield, label: "100% Anonymous" },
-                { icon: Lock, label: "End-to-End Encrypted" },
+                { emoji: "🛡️", label: "100% Anonymous" },
+                { emoji: "🔒", label: "End-to-End Encrypted" },
+                { emoji: "💬", label: "Talk Any Time" },
+                { emoji: "🌱", label: "Built for You" },
               ].map((f) => (
-                <div key={f.label} className="rounded-2xl bg-[#14221D] border border-[#2A4036] p-4 text-center animate-fade-up">
-                  <f.icon className="w-5 h-5 text-[#6B8E7B] mx-auto mb-2" />
-                  <p className="text-xs text-[#A3B8AF]">{f.label}</p>
+                <div key={f.label} className="rounded-2xl bg-[#14221D] border border-[#2A4036] p-4 text-center animate-fade-up flex flex-col items-center gap-1.5">
+                  <span className="text-2xl" aria-hidden>{f.emoji}</span>
+                  <p className="text-xs text-[#A3B8AF] font-medium">{f.label}</p>
                 </div>
               ))}
             </div>
@@ -193,7 +195,7 @@ export default function Onboarding() {
               onClick={handleRegister}
               disabled={loading}
               data-testid="get-started-btn"
-              className="w-full h-12 rounded-2xl bg-[#6B8E7B] hover:bg-[#83A894] text-[#0C1411] font-['Manrope'] font-bold text-sm transition-all duration-300 hover:scale-[1.02]"
+              className="w-full h-12 rounded-2xl bg-[#6B8E7B] hover:bg-[#83A894] text-[#0C1411] font-['Fraunces'] font-bold text-sm transition-all duration-300 hover:scale-[1.02]"
             >
               {loading ? "Creating your identity..." : "Get Started Anonymously"}
             </Button>
@@ -238,7 +240,7 @@ export default function Onboarding() {
               onClick={handleLogin}
               disabled={loading || !loginId.trim()}
               data-testid="login-submit-btn"
-              className="w-full h-12 rounded-2xl bg-[#6B8E7B] hover:bg-[#83A894] text-[#0C1411] font-['Manrope'] font-bold text-sm transition-all duration-300 hover:scale-[1.02]"
+              className="w-full h-12 rounded-2xl bg-[#6B8E7B] hover:bg-[#83A894] text-[#0C1411] font-['Fraunces'] font-bold text-sm transition-all duration-300 hover:scale-[1.02]"
             >
               {loading ? "Signing in..." : "Sign In"}
             </Button>

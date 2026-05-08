@@ -137,7 +137,7 @@ export default function Chat() {
             <Shield className="w-5 h-5 text-[#6B8E7B]" />
           </div>
           <div>
-            <h2 className="font-['Manrope'] font-bold text-[#F0F4F2]">MindShield AI</h2>
+            <h2 className="font-['Fraunces'] font-bold text-[#F0F4F2]">MindShield AI</h2>
             <p className="text-xs text-[#4ADE80]">Always available</p>
           </div>
         </div>
@@ -151,24 +151,27 @@ export default function Chat() {
       <ScrollArea className="flex-1 py-6">
         <div className="max-w-3xl mx-auto space-y-4 px-2">
           {messages.length === 0 && (
-            <div className="text-center py-16 animate-fade-up" data-testid="chat-empty-state">
-              <div className="w-16 h-16 rounded-3xl bg-[#6B8E7B]/10 flex items-center justify-center mx-auto mb-4">
-                <Shield className="w-8 h-8 text-[#6B8E7B]" />
-              </div>
-              <h3 className="font-['Manrope'] font-bold text-[#F0F4F2] mb-2">Welcome to MindShield</h3>
-              <p className="text-sm text-[#A3B8AF] max-w-sm mx-auto leading-relaxed">
-                Share what's on your mind. Everything you say here is private and anonymous.
-                I'm here to listen and help.
+            <div className="text-center py-12 animate-fade-up max-w-md mx-auto" data-testid="chat-empty-state">
+              <div className="text-5xl mb-4" aria-hidden>👋</div>
+              <h3 className="font-['Fraunces'] font-semibold text-2xl text-[#F0F4F2] mb-2">Hi there.</h3>
+              <p className="text-sm text-[#A3B8AF] leading-relaxed mb-8">
+                How are you feeling today? Whatever's on your mind, this is a private, judgement-free space.
               </p>
-              <div className="mt-6 flex flex-wrap justify-center gap-2">
-                {["I'm feeling anxious today", "I need coping strategies", "I want to talk about my mood"].map((s) => (
+              <div className="grid grid-cols-2 gap-3" data-testid="chat-prompt-grid">
+                {[
+                  { text: "I'm feeling anxious", emoji: "🌪️" },
+                  { text: "I need to vent", emoji: "🗣️" },
+                  { text: "I want coping tips", emoji: "🌱" },
+                  { text: "Just say hi", emoji: "👋" },
+                ].map((s) => (
                   <button
-                    key={s}
-                    onClick={() => setInput(s)}
-                    data-testid={`suggestion-${s.slice(0, 10).replace(/\s/g, '-')}`}
-                    className="px-4 py-2 rounded-full glass text-xs text-[#A3B8AF] hover:text-[#F0F4F2] hover:bg-white/5 transition-all duration-300"
+                    key={s.text}
+                    onClick={() => setInput(s.text)}
+                    data-testid={`suggestion-${s.text.slice(0, 12).replace(/\s/g, '-').toLowerCase()}`}
+                    className="flex items-center gap-2.5 px-4 py-3.5 rounded-2xl glass border border-[#2A4036] text-sm text-[#F0F4F2] hover:bg-white/[0.06] hover:border-[#6B8E7B]/40 hover:-translate-y-0.5 transition-all duration-300 text-left"
                   >
-                    {s}
+                    <span className="text-xl flex-shrink-0" aria-hidden>{s.emoji}</span>
+                    <span>{s.text}</span>
                   </button>
                 ))}
               </div>

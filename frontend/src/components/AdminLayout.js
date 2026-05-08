@@ -27,7 +27,7 @@ export default function AdminLayout({ children }) {
             <ShieldCheck className="w-5 h-5 text-[#E17055]" />
           </div>
           <div>
-            <span className="font-['Manrope'] font-bold text-sm text-[#F0F4F2]">MindShield</span>
+            <span className="font-['Fraunces'] font-bold text-sm text-[#F0F4F2]">MindShield</span>
             <p className="text-[10px] text-[#E17055] uppercase tracking-wider">Admin</p>
           </div>
         </div>
@@ -53,7 +53,7 @@ export default function AdminLayout({ children }) {
         <header className="flex items-center justify-between p-4 lg:px-8 lg:py-4 glass-strong">
           <div className="flex items-center gap-3">
             <button onClick={() => setSidebarOpen(true)} data-testid="admin-mobile-menu" className="lg:hidden text-[#A3B8AF]"><Menu className="w-6 h-6" /></button>
-            <div className="lg:hidden flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-[#E17055]" /><span className="font-['Manrope'] font-bold text-sm">Admin</span></div>
+            <div className="lg:hidden flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-[#E17055]" /><span className="font-['Fraunces'] font-bold text-sm">Admin</span></div>
           </div>
           <div className="flex items-center gap-2">
             <AdminNotificationBell />

@@ -108,10 +108,10 @@ export default function CounselorDashboard() {
   return (
     <div className="space-y-8" data-testid="counselor-dashboard">
       <div>
-        <h1 className="font-['Manrope'] text-2xl sm:text-3xl font-bold tracking-tight text-[#F0F4F2]">
+        <h1 className="font-['Fraunces'] text-2xl sm:text-3xl font-bold tracking-tight text-[#F0F4F2]">
           Counselor Dashboard
         </h1>
-        <p className="text-sm text-[#A3B8AF] mt-1">Manage bookings and support your patients.</p>
+        <p className="text-sm text-[#A3B8AF] mt-1">Manage bookings and support your users.</p>
       </div>
 
       {/* Stats */}
@@ -124,7 +124,7 @@ export default function CounselorDashboard() {
         ].map((stat) => (
           <div key={stat.label} className="rounded-2xl bg-[#14221D] border border-[#2A4036] p-5 animate-fade-up" data-testid={`stat-${stat.label.toLowerCase().replace(/\s/g, '-')}`}>
             <p className="text-xs text-[#A3B8AF] uppercase tracking-[0.2em]">{stat.label}</p>
-            <p className="text-2xl font-['Manrope'] font-bold mt-1" style={{ color: stat.color }}>{stat.value}</p>
+            <p className="text-2xl font-['Fraunces'] font-bold mt-1" style={{ color: stat.color }}>{stat.value}</p>
           </div>
         ))}
       </div>
@@ -133,11 +133,11 @@ export default function CounselorDashboard() {
       <div className="rounded-2xl bg-[#14221D] border border-[#2A4036] p-6 animate-fade-up" data-testid="availability-editor">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
           <div>
-            <h2 className="font-['Manrope'] font-bold text-[#F0F4F2] text-lg flex items-center gap-2">
+            <h2 className="font-['Fraunces'] font-bold text-[#F0F4F2] text-lg flex items-center gap-2">
               <Calendar className="w-4 h-4 text-[#6B8E7B]" /> My Availability
             </h2>
             <p className="text-xs text-[#A3B8AF] mt-1">
-              {profile?.specialty ? `${profile.specialty} · ` : ""}Patients will only be able to book the slots listed below.
+              {profile?.specialty ? `${profile.specialty} · ` : ""}Users will only be able to book the slots listed below.
             </p>
           </div>
           <Button
@@ -170,7 +170,7 @@ export default function CounselorDashboard() {
         </div>
 
         {slots.length === 0 ? (
-          <p className="text-xs text-[#A3B8AF] italic" data-testid="no-slots">No availability set. Patients won't be able to book until you add slots.</p>
+          <p className="text-xs text-[#A3B8AF] italic" data-testid="no-slots">No availability set. Users won't be able to book until you add slots.</p>
         ) : (
           <div className="flex flex-wrap gap-2" data-testid="slot-list">
             {slots.map((slot) => (
@@ -197,7 +197,7 @@ export default function CounselorDashboard() {
       {/* Active Conversations */}
       {conversations.length > 0 && (
         <div>
-          <h2 className="font-['Manrope'] font-bold text-[#F0F4F2] text-lg mb-4">Active Conversations</h2>
+          <h2 className="font-['Fraunces'] font-bold text-[#F0F4F2] text-lg mb-4">Active Conversations</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 stagger-children">
             {conversations.map((conv) => (
               <div
@@ -237,7 +237,7 @@ export default function CounselorDashboard() {
       {/* Bookings */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-['Manrope'] font-bold text-[#F0F4F2] text-lg">Bookings</h2>
+          <h2 className="font-['Fraunces'] font-bold text-[#F0F4F2] text-lg">Bookings</h2>
           <Tabs value={filter} onValueChange={setFilter}>
             <TabsList className="bg-[#14221D] border border-[#2A4036] rounded-xl p-1 h-auto">
               {["all", "PENDING", "CONFIRMED", "CANCELLED"].map((f) => (

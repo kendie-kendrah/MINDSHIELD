@@ -45,7 +45,7 @@ export default function Layout({ children }) {
           <div className="w-9 h-9 rounded-xl bg-[#6B8E7B]/20 flex items-center justify-center">
             <Shield className="w-5 h-5 text-[#6B8E7B]" />
           </div>
-          <span className="font-['Manrope'] font-bold text-lg tracking-tight text-[#F0F4F2]">MindShield</span>
+          <span className="font-['Fraunces'] font-bold text-lg tracking-tight text-[#F0F4F2]">MindShield</span>
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1" data-testid="sidebar-nav">
@@ -94,7 +94,7 @@ export default function Layout({ children }) {
           </button>
           <div className="flex items-center gap-2">
             <Shield className="w-5 h-5 text-[#6B8E7B]" />
-            <span className="font-['Manrope'] font-bold">MindShield</span>
+            <span className="font-['Fraunces'] font-bold">MindShield</span>
           </div>
           <AnonymousBadge compact />
         </header>

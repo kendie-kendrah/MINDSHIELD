@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="19" time="92.476" timestamp="2026-05-08T18:49:17.509868+00:00" hostname="agent-env-e841871a-a7d2-488f-a6e8-49c484b67638"><testcase classname="backend.tests.test_mindshield_features.TestHealth" name="test_root_api" time="0.271" /><testcase classname="backend.tests.test_mindshield_features.TestAdminAuth" name="test_admin_login_success" time="0.070" /><testcase classname="backend.tests.test_mindshield_features.TestAdminAuth" name="test_admin_login_wrong" time="0.064" /><testcase classname="backend.tests.test_mindshield_features.TestCrisisNotification" name="test_crisis_message_creates_notification_and_alert" time="12.839" /><testcase classname="backend.tests.test_mindshield_features.TestAdminNotificationEndpoints" name="test_list_count_and_mark_read" time="0.353" /><testcase classname="backend.tests.test_mindshield_features.TestAdminNotificationEndpoints" name="test_notifications_require_auth" time="0.074" /><testcase classname="backend.tests.test_mindshield_features.TestConnectToCounselor" name="test_connect_creates_then_returns_existing" time="0.642" /><testcase classname="backend.tests.test_mindshield_features.TestConnectToCounselor" name="test_connect_invalid_user" time="0.067" /><testcase classname="backend.tests.test_mindshield_features.TestForumAutoFlag" name="test_toxic_post_is_flagged" time="62.701"><failure message="requests.exceptions.JSONDecodeError: Expecting value: line 1 column 1 (char 0)">/root/.venv/lib/python3.11/site-packages/requests/models.py:976: in json
+    return complexjson.loads(self.text, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/json/__init__.py:346: in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/json/decoder.py:337: in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/json/decoder.py:355: in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+E   json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+During handling of the above exception, another exception occurred:
+backend/tests/test_mindshield_features.py:202: in test_toxic_post_is_flagged
+    posts = s.get(f"{API}/forum/posts").json()["posts"]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/models.py:980: in json
+    raise RequestsJSONDecodeError(e.msg, e.doc, e.pos)
+E   requests.exceptions.JSONDecodeError: Expecting value: line 1 column 1 (char 0)</failure></testcase><testcase classname="backend.tests.test_mindshield_features.TestForumAutoFlag" name="test_benign_post_not_flagged" time="8.386" /><testcase classname="backend.tests.test_mindshield_features.TestConversationCrisis" name="test_crisis_message_in_conversation" time="6.064" /><testcase classname="backend.tests.test_mindshield_features.TestCounselorProfileAvailability" name="test_get_counselor_profile" time="0.108" /><testcase classname="backend.tests.test_mindshield_features.TestCounselorProfileAvailability" name="test_get_counselor_profile_unauth" time="0.072" /><testcase classname="backend.tests.test_mindshield_features.TestCounselorProfileAvailability" name="test_update_availability" time="0.135" /><testcase classname="backend.tests.test_mindshield_features.TestRegression" name="test_patient_register" time="0.094" /><testcase classname="backend.tests.test_mindshield_features.TestRegression" name="test_admin_analytics" time="0.083" /><testcase classname="backend.tests.test_mindshield_features.TestRegression" name="test_forum_get" time="0.064" /><testcase classname="backend.tests.test_mindshield_features.TestRegression" name="test_mood_log" time="0.075" /><testcase classname="backend.tests.test_mindshield_features.TestRegression" name="test_appointments_list_counselors" time="0.079" /></testsuite></testsuites>

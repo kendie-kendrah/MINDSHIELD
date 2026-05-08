@@ -144,9 +144,9 @@ export default function CounselorChat() {
           {isCounselor ? <User className="w-5 h-5 text-[#6B8E7B]" /> : <Stethoscope className="w-5 h-5 text-[#6B8E7B]" />}
         </div>
         <div>
-          <h2 className="font-['Manrope'] font-bold text-[#F0F4F2] text-sm">{otherName || "Loading..."}</h2>
+          <h2 className="font-['Fraunces'] font-bold text-[#F0F4F2] text-sm">{otherName || "Loading..."}</h2>
           <p className="text-xs text-[#4ADE80]">
-            {isCounselor ? "Patient" : "Counselor"} - Encrypted Session
+            {isCounselor ? "User" : "Counselor"} - Encrypted Session
           </p>
         </div>
         <div className="ml-auto flex items-center gap-2">
@@ -170,7 +170,7 @@ export default function CounselorChat() {
             <div className="text-center py-16 animate-fade-up" data-testid="chat-empty">
               <p className="text-sm text-[#A3B8AF]">
                 {isCounselor
-                  ? "Start the conversation with your patient. Be empathetic and supportive."
+                  ? "Start the conversation with your user. Be empathetic and supportive."
                   : "Your counselor is available. Share what's on your mind."}
               </p>
             </div>

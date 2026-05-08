@@ -31,7 +31,7 @@ export default function CounselorLayout({ children }) {
             <Stethoscope className="w-5 h-5 text-[#6B8E7B]" />
           </div>
           <div>
-            <span className="font-['Manrope'] font-bold text-sm text-[#F0F4F2]">MindShield</span>
+            <span className="font-['Fraunces'] font-bold text-sm text-[#F0F4F2]">MindShield</span>
             <p className="text-[10px] text-[#6B8E7B] uppercase tracking-wider">Counselor</p>
           </div>
         </div>
@@ -73,7 +73,7 @@ export default function CounselorLayout({ children }) {
           </button>
           <div className="flex items-center gap-2">
             <Stethoscope className="w-5 h-5 text-[#6B8E7B]" />
-            <span className="font-['Manrope'] font-bold text-sm">Counselor Portal</span>
+            <span className="font-['Fraunces'] font-bold text-sm">Counselor Portal</span>
           </div>
           <div />
         </header>

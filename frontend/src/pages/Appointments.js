@@ -12,10 +12,15 @@ import axios from "axios";
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const STATUS_STYLES = {
-  PENDING: { bg: "bg-[#FCD34D]/10", text: "text-[#FCD34D]" },
-  CONFIRMED: { bg: "bg-[#4ADE80]/10", text: "text-[#4ADE80]" },
-  CANCELLED: { bg: "bg-[#E17055]/10", text: "text-[#E17055]" },
+  PENDING: { bg: "bg-[#FCD34D]/10", text: "text-[#FCD34D]", emoji: "⏳", label: "Awaiting confirmation" },
+  CONFIRMED: { bg: "bg-[#4ADE80]/10", text: "text-[#4ADE80]", emoji: "✅", label: "Confirmed" },
+  CANCELLED: { bg: "bg-[#E17055]/10", text: "text-[#E17055]", emoji: "❌", label: "Cancelled" },
+  COMPLETED: { bg: "bg-[#A3B8AF]/10", text: "text-[#A3B8AF]", emoji: "🌿", label: "Completed" },
 };
+
+// Pick a soft emoji avatar based on the counselor's pseudonym (deterministic)
+const COUNSELOR_EMOJIS = ["🌿", "🌸", "🌻", "🌊", "✨", "🍃", "☀️", "🌙"];
+const counselorEmoji = (id = "") => COUNSELOR_EMOJIS[id.charCodeAt(0) % COUNSELOR_EMOJIS.length];
 
 export default function Appointments() {
   const navigate = useNavigate();
@@ -90,13 +95,13 @@ export default function Appointments() {
   return (
     <div className="space-y-8" data-testid="appointments-page">
       <div>
-        <h1 className="font-['Manrope'] text-2xl sm:text-3xl font-bold tracking-tight text-[#F0F4F2]">Appointments</h1>
+        <h1 className="font-['Fraunces'] text-2xl sm:text-3xl font-bold tracking-tight text-[#F0F4F2]">Appointments</h1>
         <p className="text-sm text-[#A3B8AF] mt-1">Book anonymous sessions with professional counselors.</p>
       </div>
 
       {/* Counselors */}
       <div>
-        <h2 className="font-['Manrope'] font-bold text-[#F0F4F2] text-lg mb-4">Available Counselors</h2>
+        <h2 className="font-['Fraunces'] font-bold text-[#F0F4F2] text-lg mb-4">Available Counselors</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 stagger-children">
           {counselors.map((c) => (
             <div
@@ -105,11 +110,11 @@ export default function Appointments() {
               data-testid={`counselor-${c.id}`}
             >
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-[#6B8E7B]/10 flex items-center justify-center flex-shrink-0">
-                  <User className="w-6 h-6 text-[#6B8E7B]" />
+                <div className="w-14 h-14 rounded-2xl bg-[#6B8E7B]/10 flex items-center justify-center flex-shrink-0 text-3xl" aria-hidden>
+                  {counselorEmoji(c.id)}
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-['Manrope'] font-bold text-[#F0F4F2]">{c.pseudonym}</h3>
+                  <h3 className="font-['Fraunces'] font-semibold text-[#F0F4F2] text-base">{c.pseudonym}</h3>
                   <p className="text-xs text-[#6B8E7B] mt-0.5">{c.specialty}</p>
                   <p className="text-xs text-[#A3B8AF] mt-2 leading-relaxed">{c.bio}</p>
                   <div className="flex flex-wrap gap-1.5 mt-3">
@@ -137,7 +142,7 @@ export default function Appointments() {
                     </DialogTrigger>
                     <DialogContent className="bg-[#14221D] border-[#2A4036] rounded-3xl max-w-md">
                       <DialogHeader>
-                        <DialogTitle className="font-['Manrope'] text-[#F0F4F2]">
+                        <DialogTitle className="font-['Fraunces'] text-[#F0F4F2]">
                           Book with {selectedCounselor?.pseudonym}
                         </DialogTitle>
                       </DialogHeader>
@@ -179,11 +184,11 @@ export default function Appointments() {
 
       {/* Upcoming Appointments */}
       <div>
-        <h2 className="font-['Manrope'] font-bold text-[#F0F4F2] text-lg mb-4">Your Appointments</h2>
+        <h2 className="font-['Fraunces'] font-bold text-[#F0F4F2] text-lg mb-4">Your Appointments</h2>
         {appointments.length === 0 ? (
-          <div className="rounded-2xl bg-[#14221D] border border-[#2A4036] p-8 text-center" data-testid="no-appointments">
-            <Calendar className="w-8 h-8 text-[#2A4036] mx-auto mb-2" />
-            <p className="text-sm text-[#A3B8AF]">No appointments yet. Book a session with a counselor above.</p>
+          <div className="rounded-2xl bg-[#14221D] border border-[#2A4036] p-10 text-center" data-testid="no-appointments">
+            <div className="text-4xl mb-3" aria-hidden>📅</div>
+            <p className="text-sm text-[#A3B8AF]">No appointments yet — book a session with a counselor above.</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -209,8 +214,8 @@ export default function Appointments() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-medium uppercase tracking-wider ${style.bg} ${style.text}`}>
-                      {appt.status}
+                    <span className={`px-3 py-1 rounded-full text-[11px] font-semibold tracking-wide flex items-center gap-1 ${style.bg} ${style.text}`}>
+                      <span aria-hidden>{style.emoji}</span> {style.label}
                     </span>
                     {appt.status === "CONFIRMED" && (() => {
                       const conv = conversations.find(c => c.counselor_id === appt.counselor_id);

@@ -45,7 +45,7 @@ export default function AdminLogin() {
             <ShieldCheck className="w-10 h-10 text-[#6B8E7B]" />
           </div>
           <div>
-            <h1 className="font-['Manrope'] text-3xl sm:text-4xl font-bold tracking-tighter text-[#F0F4F2]">Admin Panel</h1>
+            <h1 className="font-['Fraunces'] text-3xl sm:text-4xl font-bold tracking-tighter text-[#F0F4F2]">Admin Panel</h1>
             <p className="mt-2 text-sm text-[#A3B8AF]">MindShield platform administration</p>
           </div>
         </div>
@@ -87,7 +87,7 @@ export default function AdminLogin() {
             onClick={handleLogin}
             disabled={loading || !username.trim() || !password.trim()}
             data-testid="admin-login-submit"
-            className="w-full h-12 rounded-2xl bg-[#6B8E7B] hover:bg-[#83A894] text-[#0C1411] font-['Manrope'] font-bold transition-all duration-300 hover:scale-[1.02]"
+            className="w-full h-12 rounded-2xl bg-[#6B8E7B] hover:bg-[#83A894] text-[#0C1411] font-['Fraunces'] font-bold transition-all duration-300 hover:scale-[1.02]"
           >
             {loading ? "Signing in..." : "Sign In"}
           </Button>
